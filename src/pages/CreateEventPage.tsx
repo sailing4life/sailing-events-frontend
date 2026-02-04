@@ -278,8 +278,10 @@ export function CreateEventPage() {
                   onChange={(e) => setFormData({ ...formData, duration: e.target.value as any })}
                   className="input-field"
                 >
-                  <option value="half_day">Halve dag</option>
-                  <option value="full_day">Hele dag</option>
+                  <option value="">-- Selecteer duur --</option>
+                  <option value="morning">☀️ Ochtend</option>
+                  <option value="afternoon">🌅 Middag</option>
+                  <option value="full_day">📅 Hele dag</option>
                 </select>
               </div>
             </div>
@@ -441,7 +443,7 @@ export function CreateEventPage() {
                             {skipper.first_name} {skipper.last_name}
                           </p>
                           <p className="text-sm text-gray-600">
-                            €{formData.duration === 'half_day' ? skipper.half_day_rate : skipper.full_day_rate}
+                            €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
                           </p>
                         </div>
                         {formData.selected_head_skipper === skipper.id && (
@@ -484,7 +486,7 @@ export function CreateEventPage() {
                             {skipper.first_name} {skipper.last_name}
                           </p>
                           <p className="text-sm text-gray-600">
-                            €{formData.duration === 'half_day' ? skipper.half_day_rate : skipper.full_day_rate}
+                            €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
                           </p>
                         </div>
                         {formData.selected_skippers.includes(skipper.id) && (
@@ -530,7 +532,7 @@ export function CreateEventPage() {
                             {skipper.first_name} {skipper.last_name}
                           </p>
                           <p className="text-sm text-gray-600">
-                            €{formData.duration === 'half_day' ? skipper.half_day_rate : skipper.full_day_rate}
+                            €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
                           </p>
                         </div>
                         {formData.selected_race_directors.includes(skipper.id) && (
@@ -593,7 +595,11 @@ export function CreateEventPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Duur:</span>
-                    <span className="font-medium">{formData.duration === 'half_day' ? 'Halve dag' : 'Hele dag'}</span>
+                    <span className="font-medium">
+                      {formData.duration === 'morning' ? '☀️ Ochtend' :
+                       formData.duration === 'afternoon' ? '🌅 Middag' :
+                       formData.duration === 'half_day' ? 'Halve dag' : '📅 Hele dag'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -630,7 +636,7 @@ export function CreateEventPage() {
                             <p className="text-sm text-gray-600">👑 Hoofdschipper</p>
                           </div>
                           <span className="text-sm font-medium text-gray-700">
-                            €{formData.duration === 'half_day' ? skipper?.half_day_rate : skipper?.full_day_rate}
+                            €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
                           </span>
                         </div>
                       );
@@ -654,7 +660,7 @@ export function CreateEventPage() {
                           <p className="text-sm text-gray-600">⛵ Schipper</p>
                         </div>
                         <span className="text-sm font-medium text-gray-700">
-                          €{formData.duration === 'half_day' ? skipper?.half_day_rate : skipper?.full_day_rate}
+                          €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
                         </span>
                       </div>
                     );
@@ -678,7 +684,7 @@ export function CreateEventPage() {
                             <p className="text-sm text-gray-600">📋 Wedstrijdleiding</p>
                           </div>
                           <span className="text-sm font-medium text-gray-700">
-                            €{formData.duration === 'half_day' ? skipper?.half_day_rate : skipper?.full_day_rate}
+                            €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
                           </span>
                         </div>
                       );

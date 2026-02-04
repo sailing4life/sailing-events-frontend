@@ -51,7 +51,13 @@ const formatEventType = (type: string) => {
 };
 
 const getDurationLabel = (duration: string) => {
-  return duration === 'half_day' ? 'Halve dag' : 'Hele dag';
+  const labels: { [key: string]: string } = {
+    'half_day': 'Halve dag',
+    'morning': '☀️ Ochtend',
+    'afternoon': '🌅 Middag',
+    'full_day': '📅 Hele dag'
+  };
+  return labels[duration] || 'Hele dag';
 };
 
 export function EventCard({ event, eventTypeLabels }: EventCardProps) {
