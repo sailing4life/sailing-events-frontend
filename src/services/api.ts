@@ -58,6 +58,10 @@ export const boatsApi = {
     const response = await api.get(`/api/boats/${boatId}/maintenance`);
     return ensureArray<BoatMaintenance>(response.data, 'maintenance tasks');
   },
+  getAllMaintenance: async (): Promise<BoatMaintenance[]> => {
+    const response = await api.get('/api/boats/maintenance/all');
+    return ensureArray<BoatMaintenance>(response.data, 'all maintenance tasks');
+  },
   createMaintenance: async (boatId: number, taskData: {
     task: string;
     priority?: string;

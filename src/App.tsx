@@ -9,6 +9,7 @@ import { EditEventPage } from './pages/EditEventPage';
 import { EventDetailPage } from './pages/EventDetailPage';
 import { SkippersPage } from './pages/SkippersPage';
 import { BoatsPage } from './pages/BoatsPage';
+import { MaintenancePage } from './pages/MaintenancePage';
 import { StatisticsPage } from './pages/StatisticsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
@@ -26,6 +27,7 @@ function App() {
             <Route path="events/:id/edit" element={<EditEventPage />} />
             <Route path="skippers" element={<SkippersPage />} />
             <Route path="boats" element={<BoatsPage />} />
+            <Route path="maintenance" element={<MaintenancePage />} />
             <Route path="statistics" element={<StatisticsPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="settings" element={<SettingsPage />} />

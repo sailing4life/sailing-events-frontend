@@ -5,6 +5,7 @@ export function Navigation() {
     { path: '/', label: 'Events', icon: '📅' },
     { path: '/skippers', label: 'Schippers', icon: '⚓' },
     { path: '/boats', label: 'Boten', icon: '⛵' },
+    { path: '/maintenance', label: 'Onderhoud', icon: '🔧' },
     { path: '/statistics', label: 'Statistieken', icon: '📊' },
     { path: '/notifications', label: 'Notificaties', icon: '🔔' },
     { path: '/settings', label: 'Instellingen', icon: '⚙️' },

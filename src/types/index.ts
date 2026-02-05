@@ -17,6 +17,7 @@ export interface Boat {
 export interface BoatMaintenance {
   id: number;
   boat_id: number;
+  boat_name?: string;
   task: string;
   is_completed: boolean;
   priority: 'low' | 'normal' | 'high' | 'urgent';
