@@ -209,6 +209,14 @@ export const eventsApi = {
     return response.data;
   },
 
+  assignManual: async (
+    eventId: number,
+    assignment: { skipper_id: number; boat_id: number; role: string }
+  ): Promise<{ success: boolean; message: string; event_boat_id: number; notification_sent: boolean }> => {
+    const response = await api.post(`/api/events/${eventId}/assign-manual`, assignment);
+    return response.data;
+  },
+
   close: async (eventId: number): Promise<{
     message: string;
     emails: { total: number; sent: number; failed: number; failed_emails: string[] };

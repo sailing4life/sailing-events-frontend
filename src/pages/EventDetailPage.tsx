@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { eventsApi, invitationsApi, boatsApi, skippersApi, eventTypesApi } from '../services/api';
-import type { Event, InvitationStatus, Boat, Skipper, EventTypeConfig } from '../types';
+import type { Event, InvitationStatus, Boat, Skipper, EventTypeConfig, Invitation } from '../types';
+import { ManualAssignmentModal } from '../components/events/ManualAssignmentModal';
 
 const getInvitationStatusBadge = (status: InvitationStatus) => {
   const badges = {
@@ -37,6 +38,8 @@ export function EventDetailPage() {
   const [selectedRaceDirectors, setSelectedRaceDirectors] = useState<number[]>([]);
   const [selectedHeadSkipper, setSelectedHeadSkipper] = useState<number | null>(null);
   const [invitationFilter, setInvitationFilter] = useState<'all' | 'pending' | 'available' | 'confirmed'>('all');
+  const [manualAssignModalOpen, setManualAssignModalOpen] = useState(false);
+  const [selectedInvitation, setSelectedInvitation] = useState<Invitation | null>(null);
   const [editFormData, setEditFormData] = useState({
     event_name: '',
     company_name: '',
@@ -208,6 +211,38 @@ export function EventDetailPage() {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const handleManualAssignment = async (skipperId: number, boatId: number) => {
+    if (!id) return;
+
+    setActionLoading(true);
+    try {
+      await eventsApi.assignManual(parseInt(id), {
+        skipper_id: skipperId,
+        boat_id: boatId,
+        role: selectedInvitation?.role || 'skipper'
+      });
+
+      // Reload event data
+      await loadEvent();
+
+      setManualAssignModalOpen(false);
+      setSelectedInvitation(null);
+
+      alert('Schipper succesvol toegewezen!');
+    } catch (error: any) {
+      console.error('Error assigning skipper:', error);
+      const errorMessage = error.response?.data?.detail || 'Fout bij toewijzen';
+      alert(errorMessage);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const openManualAssignModal = (invitation: Invitation) => {
+    setSelectedInvitation(invitation);
+    setManualAssignModalOpen(true);
   };
 
   const handleOpenInviteModal = (role: 'head_skipper' | 'skippers' | 'race_director') => {
@@ -385,6 +420,12 @@ export function EventDetailPage() {
   const isComplete = requiredSkippers > 0
     && availableSkippers >= requiredSkippers
     && availableRaceDirectors >= requiredRaceDirectors;
+
+  // Helper functions for manual assignment
+  const unassignedBoats = event.event_boats.filter(eb => !eb.skipper);
+  const isAssigned = (skipperId: number) => {
+    return event.event_boats.some(eb => eb.skipper?.id === skipperId);
+  };
 
   const eventDate = new Date(event.event_date);
   const formattedDate = eventDate.toLocaleDateString('nl-NL', {
@@ -661,6 +702,15 @@ export function EventDetailPage() {
                                 className="px-3 py-1 text-sm rounded-lg font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
                               >
                                 ✓ Bevestig
+                              </button>
+                            )}
+                            {(invitation.status === 'available' || invitation.status === 'confirmed') && !isAssigned(invitation.skipper.id) && unassignedBoats.length > 0 && (
+                              <button
+                                onClick={() => openManualAssignModal(invitation)}
+                                disabled={actionLoading}
+                                className="px-3 py-1 text-sm rounded-lg font-medium bg-purple-500 text-white hover:bg-purple-600 disabled:opacity-50 transition-colors"
+                              >
+                                👤 Direct Toewijzen
                               </button>
                             )}
                                       <span className={`badge ${statusInfo.class}`}>
@@ -1132,6 +1182,15 @@ export function EventDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Manual Assignment Modal */}
+      <ManualAssignmentModal
+        isOpen={manualAssignModalOpen}
+        onClose={() => setManualAssignModalOpen(false)}
+        invitation={selectedInvitation}
+        availableBoats={unassignedBoats}
+        onAssign={handleManualAssignment}
+      />
     </div>
   );
 }
