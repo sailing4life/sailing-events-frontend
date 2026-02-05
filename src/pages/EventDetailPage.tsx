@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { eventsApi, invitationsApi, boatsApi, skippersApi, eventTypesApi } from '../services/api';
 import type { Event, InvitationStatus, Boat, Skipper, EventTypeConfig, Invitation } from '../types';
 import { ManualAssignmentModal } from '../components/events/ManualAssignmentModal';
+import { DirectConfirmModal } from '../components/events/DirectConfirmModal';
 
 const getInvitationStatusBadge = (status: InvitationStatus) => {
   const badges = {
@@ -40,6 +41,7 @@ export function EventDetailPage() {
   const [invitationFilter, setInvitationFilter] = useState<'all' | 'pending' | 'available' | 'confirmed'>('all');
   const [manualAssignModalOpen, setManualAssignModalOpen] = useState(false);
   const [selectedInvitation, setSelectedInvitation] = useState<Invitation | null>(null);
+  const [directConfirmModalOpen, setDirectConfirmModalOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({
     event_name: '',
     company_name: '',
@@ -243,6 +245,32 @@ export function EventDetailPage() {
   const openManualAssignModal = (invitation: Invitation) => {
     setSelectedInvitation(invitation);
     setManualAssignModalOpen(true);
+  };
+
+  const handleDirectConfirm = async (assignments: Array<{ skipper_id: number; role: string }>) => {
+    if (!id) return;
+
+    setActionLoading(true);
+    try {
+      const result = await eventsApi.confirmDirect(parseInt(id), assignments);
+
+      // Show success message with details
+      const emailInfo = result.emails_failed > 0
+        ? `\n${result.emails_sent} email(s) verstuurd, ${result.emails_failed} mislukt`
+        : '';
+      alert(`${result.message}${emailInfo}`);
+
+      // Reload event data to show updated invitations
+      await loadEvent();
+
+      setDirectConfirmModalOpen(false);
+    } catch (error: any) {
+      console.error('Error confirming skippers:', error);
+      const errorMessage = error.response?.data?.detail || 'Fout bij het bevestigen van schippers';
+      alert(errorMessage);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleOpenInviteModal = (role: 'head_skipper' | 'skippers' | 'race_director') => {
@@ -572,18 +600,30 @@ export function EventDetailPage() {
                   Overzicht per rol, inclusief beschikbaarheid en bevestiging
                 </p>
               </div>
-              {invitationCounts.pending > 0 && (
+              <div className="flex gap-2">
                 <button
-                  onClick={handleSendReminder}
+                  onClick={() => setDirectConfirmModalOpen(true)}
                   disabled={actionLoading}
-                  className="btn-secondary flex items-center gap-2 disabled:opacity-50"
+                  className="btn-primary flex items-center gap-2 disabled:opacity-50"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                   </svg>
-                  Bulk: herinnering naar alle wachtenden ({invitationCounts.pending})
+                  Persoonlijk Toewijzen
                 </button>
-              )}
+                {invitationCounts.pending > 0 && (
+                  <button
+                    onClick={handleSendReminder}
+                    disabled={actionLoading}
+                    className="btn-secondary flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Bulk: herinnering naar alle wachtenden ({invitationCounts.pending})
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
@@ -1195,6 +1235,17 @@ export function EventDetailPage() {
         availableBoats={unassignedBoats}
         onAssign={handleManualAssignment}
       />
+
+      {/* Direct Confirm Modal */}
+      {event && (
+        <DirectConfirmModal
+          isOpen={directConfirmModalOpen}
+          onClose={() => setDirectConfirmModalOpen(false)}
+          event={event}
+          allSkippers={skippers}
+          onConfirm={handleDirectConfirm}
+        />
+      )}
     </div>
   );
 }

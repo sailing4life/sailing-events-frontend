@@ -217,6 +217,22 @@ export const eventsApi = {
     return response.data;
   },
 
+  confirmDirect: async (
+    eventId: number,
+    assignments: Array<{ skipper_id: number; role: string }>
+  ): Promise<{
+    success: boolean;
+    message: string;
+    confirmed: number;
+    updated: number;
+    total_processed: number;
+    emails_sent: number;
+    emails_failed: number;
+  }> => {
+    const response = await api.post(`/api/events/${eventId}/confirm-direct`, { assignments });
+    return response.data;
+  },
+
   close: async (eventId: number): Promise<{
     message: string;
     emails: { total: number; sent: number; failed: number; failed_emails: string[] };
