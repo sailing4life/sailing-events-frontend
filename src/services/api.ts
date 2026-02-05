@@ -302,6 +302,18 @@ export const eventTypesApi = {
   },
 };
 
+// Settings API
+export const settingsApi = {
+  getAdminNotifications: async (): Promise<{ admin_email: string; admin_notifications_enabled: boolean }> => {
+    const response = await api.get('/api/settings/admin-notifications');
+    return response.data;
+  },
+  updateAdminNotifications: async (settings: { admin_email: string; admin_notifications_enabled: boolean }): Promise<{ admin_email: string; admin_notifications_enabled: boolean }> => {
+    const response = await api.put('/api/settings/admin-notifications', settings);
+    return response.data;
+  },
+};
+
 // Invitations API
 export const invitationsApi = {
   confirm: async (invitationId: number): Promise<{ success: boolean; message: string }> => {

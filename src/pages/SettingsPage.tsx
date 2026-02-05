@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { eventTypesApi } from '../services/api';
+import { eventTypesApi, settingsApi } from '../services/api';
 import type { EventTypeConfig } from '../types';
 
 export function SettingsPage() {
@@ -9,8 +9,14 @@ export function SettingsPage() {
   const [creating, setCreating] = useState(false);
   const [newTypeLabel, setNewTypeLabel] = useState('');
 
+  // Admin notification settings
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminNotificationsEnabled, setAdminNotificationsEnabled] = useState(false);
+  const [savingNotifications, setSavingNotifications] = useState(false);
+
   useEffect(() => {
     loadEventTypes();
+    loadAdminSettings();
   }, []);
 
   const loadEventTypes = async () => {
@@ -22,6 +28,32 @@ export function SettingsPage() {
       alert('Fout bij het laden van event types');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAdminSettings = async () => {
+    try {
+      const data = await settingsApi.getAdminNotifications();
+      setAdminEmail(data.admin_email);
+      setAdminNotificationsEnabled(data.admin_notifications_enabled);
+    } catch (error) {
+      console.error('Error loading admin settings:', error);
+    }
+  };
+
+  const handleSaveAdminSettings = async () => {
+    setSavingNotifications(true);
+    try {
+      await settingsApi.updateAdminNotifications({
+        admin_email: adminEmail,
+        admin_notifications_enabled: adminNotificationsEnabled,
+      });
+      alert('Admin notificatie instellingen opgeslagen!');
+    } catch (error) {
+      console.error('Error saving admin settings:', error);
+      alert('Fout bij opslaan van admin instellingen');
+    } finally {
+      setSavingNotifications(false);
     }
   };
 
@@ -82,7 +114,53 @@ export function SettingsPage() {
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Instellingen</h1>
-        <p className="text-gray-600">Beheer event types</p>
+        <p className="text-gray-600">Beheer applicatie instellingen</p>
+      </div>
+
+      {/* Admin Email Notifications */}
+      <div className="card mb-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">📧 Admin Email Notificaties</h2>
+        <p className="text-sm text-gray-600 mb-4">
+          Ontvang een email wanneer schippers reageren op uitnodigingen of andere belangrijke events plaatsvinden.
+        </p>
+        <div className="space-y-4">
+          <div>
+            <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+              <input
+                type="checkbox"
+                checked={adminNotificationsEnabled}
+                onChange={(e) => setAdminNotificationsEnabled(e.target.checked)}
+                className="w-4 h-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500 mr-2"
+              />
+              Email notificaties inschakelen
+            </label>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Admin Email Adres
+            </label>
+            <input
+              type="email"
+              value={adminEmail}
+              onChange={(e) => setAdminEmail(e.target.value)}
+              placeholder="admin@example.com"
+              className="input max-w-md"
+              disabled={!adminNotificationsEnabled}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Notificaties worden naar dit email adres gestuurd
+            </p>
+          </div>
+          <div>
+            <button
+              onClick={handleSaveAdminSettings}
+              className="btn-primary"
+              disabled={savingNotifications}
+            >
+              {savingNotifications ? 'Opslaan...' : 'Instellingen Opslaan'}
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="card mb-8">
