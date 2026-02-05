@@ -6,10 +6,9 @@ interface BoatEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   boat: Boat | null;
-  onSave: () => void;
 }
 
-export function BoatEditModal({ isOpen, onClose, boat, onSave }: BoatEditModalProps) {
+export function BoatEditModal({ isOpen, onClose, boat }: BoatEditModalProps) {
   const [maintenanceTasks, setMaintenanceTasks] = useState<BoatMaintenance[]>([]);
   const [newTask, setNewTask] = useState('');
   const [newPriority, setNewPriority] = useState<'low' | 'normal' | 'high' | 'urgent'>('normal');
