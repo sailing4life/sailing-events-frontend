@@ -7,7 +7,7 @@ interface EventFormData {
   event_name: string;
   company_name: string;
   event_date: string;
-  duration: 'half_day' | 'full_day';
+  duration: 'half_day' | 'morning' | 'afternoon' | 'full_day';
   event_type: string;
   notes: string;
   required_race_directors: number;

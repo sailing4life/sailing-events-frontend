@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Invitation, EventBoat } from '../../types';
+import type { Invitation, EventBoat } from '../../types';
 
 interface ManualAssignmentModalProps {
   isOpen: boolean;

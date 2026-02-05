@@ -7,7 +7,7 @@ interface EventFormData {
   event_name: string;
   company_name: string;
   event_date: string;
-  duration: 'half_day' | 'full_day';
+  duration: 'half_day' | 'morning' | 'afternoon' | 'full_day';
   event_type: string;
   notes: string;
   required_race_directors: number;
@@ -184,8 +184,10 @@ export function EditEventPage() {
                 onChange={(e) => setFormData({ ...formData, duration: e.target.value as any })}
                 className="input-field"
               >
-                <option value="half_day">Halve dag</option>
-                <option value="full_day">Hele dag</option>
+                <option value="">-- Selecteer duur --</option>
+                <option value="morning">☀️ Ochtend</option>
+                <option value="afternoon">🌅 Middag</option>
+                <option value="full_day">📅 Hele dag</option>
               </select>
             </div>
           </div>

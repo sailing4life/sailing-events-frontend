@@ -44,7 +44,7 @@ export function EventDetailPage() {
     event_name: '',
     company_name: '',
     event_date: '',
-    duration: 'full_day' as 'half_day' | 'full_day',
+    duration: 'full_day' as 'half_day' | 'morning' | 'afternoon' | 'full_day',
     event_type: '' as string,
     notes: '',
     required_race_directors: 0,
@@ -535,7 +535,9 @@ export function EventDetailPage() {
               <div>
                 <p className="text-sm text-gray-600 mb-1">Duur</p>
                 <p className="font-medium text-gray-900">
-                  {event.duration === 'half_day' ? 'Halve dag' : 'Hele dag'}
+                  {event.duration === 'morning' ? '☀️ Ochtend' :
+                   event.duration === 'afternoon' ? '🌅 Middag' :
+                   event.duration === 'half_day' ? 'Halve dag' : '📅 Hele dag'}
                 </p>
               </div>
               <div>
@@ -923,11 +925,13 @@ export function EventDetailPage() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Duur</label>
                       <select
                         value={editFormData.duration}
-                        onChange={(e) => setEditFormData(prev => ({ ...prev, duration: e.target.value as 'half_day' | 'full_day' }))}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, duration: e.target.value as 'half_day' | 'morning' | 'afternoon' | 'full_day' }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                       >
-                        <option value="half_day">Halve dag</option>
-                        <option value="full_day">Hele dag</option>
+                        <option value="">-- Selecteer duur --</option>
+                        <option value="morning">☀️ Ochtend</option>
+                        <option value="afternoon">🌅 Middag</option>
+                        <option value="full_day">📅 Hele dag</option>
                       </select>
                     </div>
                     <div>
