@@ -746,15 +746,6 @@ export function EventDetailPage() {
                                 ✓ Bevestig
                               </button>
                             )}
-                            {(invitation.status === 'available' || invitation.status === 'confirmed') && !isAssigned(invitation.skipper.id) && unassignedBoats.length > 0 && (
-                              <button
-                                onClick={() => openManualAssignModal(invitation)}
-                                disabled={actionLoading}
-                                className="px-3 py-1 text-sm rounded-lg font-medium bg-purple-500 text-white hover:bg-purple-600 disabled:opacity-50 transition-colors"
-                              >
-                                👤 Direct Toewijzen
-                              </button>
-                            )}
                                       <span className={`badge ${statusInfo.class}`}>
                                         {statusInfo.icon} {statusInfo.label}
                                       </span>
