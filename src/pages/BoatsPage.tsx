@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { boatsApi } from '../services/api';
 import type { Boat } from '../types';
+import { BoatEditModal } from '../components/boats/BoatEditModal';
 
 export function BoatsPage() {
   const [boats, setBoats] = useState<Boat[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedBoat, setSelectedBoat] = useState<Boat | null>(null);
   const [createFormData, setCreateFormData] = useState({
     name: '',
     capacity: 12,
@@ -38,6 +41,16 @@ export function BoatsPage() {
       console.error('Error toggling boat availability:', error);
       alert('Fout bij het wijzigen van beschikbaarheid');
     }
+  };
+
+  const handleOpenEdit = (boat: Boat) => {
+    setSelectedBoat(boat);
+    setShowEditModal(true);
+  };
+
+  const handleCloseEdit = () => {
+    setShowEditModal(false);
+    setSelectedBoat(null);
   };
 
   const handleCreateSubmit = async () => {
@@ -115,7 +128,13 @@ export function BoatsPage() {
               </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t">
+            <div className="mt-4 pt-4 border-t space-y-2">
+              <button
+                onClick={() => handleOpenEdit(boat)}
+                className="w-full py-2 px-4 rounded-lg text-sm font-medium bg-cyan-600 text-white hover:bg-cyan-700 transition-colors"
+              >
+                🔧 Onderhoud
+              </button>
               <button
                 onClick={() => toggleAvailability(boat.id)}
                 className={`w-full py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
@@ -222,6 +241,14 @@ export function BoatsPage() {
           </div>
         </div>
       )}
+
+      {/* Boat Edit Modal */}
+      <BoatEditModal
+        isOpen={showEditModal}
+        onClose={handleCloseEdit}
+        boat={selectedBoat}
+        onSave={loadBoats}
+      />
     </div>
   );
 }

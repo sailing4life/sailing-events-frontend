@@ -14,6 +14,17 @@ export interface Boat {
   is_active: boolean;
 }
 
+export interface BoatMaintenance {
+  id: number;
+  boat_id: number;
+  task: string;
+  is_completed: boolean;
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  created_at: string;
+  completed_at?: string;
+  notes?: string;
+}
+
 export interface Skipper {
   id: number;
   first_name: string;

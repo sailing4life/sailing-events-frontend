@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Boat, Skipper, Event, Invitation, EventTypeConfig, NotificationItem } from '../types';
+import type { Boat, BoatMaintenance, Skipper, Event, Invitation, EventTypeConfig, NotificationItem } from '../types';
 
 // API Base URL - uses environment variable if available, falls back to localhost
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -50,6 +50,33 @@ export const boatsApi = {
   },
   toggleAvailability: async (boatId: number): Promise<Boat> => {
     const response = await api.patch(`/api/boats/${boatId}/toggle`);
+    return response.data;
+  },
+
+  // Boat Maintenance
+  getMaintenance: async (boatId: number): Promise<BoatMaintenance[]> => {
+    const response = await api.get(`/api/boats/${boatId}/maintenance`);
+    return ensureArray<BoatMaintenance>(response.data, 'maintenance tasks');
+  },
+  createMaintenance: async (boatId: number, taskData: {
+    task: string;
+    priority?: string;
+    notes?: string;
+  }): Promise<BoatMaintenance> => {
+    const response = await api.post(`/api/boats/${boatId}/maintenance`, taskData);
+    return response.data;
+  },
+  updateMaintenance: async (boatId: number, taskId: number, taskData: {
+    task?: string;
+    is_completed?: boolean;
+    priority?: string;
+    notes?: string;
+  }): Promise<BoatMaintenance> => {
+    const response = await api.put(`/api/boats/${boatId}/maintenance/${taskId}`, taskData);
+    return response.data;
+  },
+  deleteMaintenance: async (boatId: number, taskId: number): Promise<{ success: boolean; message: string }> => {
+    const response = await api.delete(`/api/boats/${boatId}/maintenance/${taskId}`);
     return response.data;
   },
 };
