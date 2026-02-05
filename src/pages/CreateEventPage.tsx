@@ -184,11 +184,8 @@ export function CreateEventPage() {
       case 2:
         return formData.selected_boats.length > 0;
       case 3:
-        // Must have at least as many skippers as boats (head skipper + regular skippers, not counting race directors)
-        const totalSkippers = formData.selected_skippers.length + (formData.selected_head_skipper ? 1 : 0);
-        const hasEnoughSkippers = totalSkippers >= formData.selected_boats.length;
-        const hasEnoughRaceDirectors = formData.selected_race_directors.length >= formData.required_race_directors;
-        return hasEnoughSkippers && hasEnoughRaceDirectors;
+        // Allow proceeding even with fewer skippers or race directors than required.
+        return true;
       default:
         return true;
     }
