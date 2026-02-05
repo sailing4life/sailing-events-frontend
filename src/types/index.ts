@@ -55,6 +55,7 @@ export interface Invitation {
   status: InvitationStatus;
   invitation_sent_at?: string;
   response_received_at?: string;
+  confirmed_in_person?: boolean;
 }
 
 export interface Event {
