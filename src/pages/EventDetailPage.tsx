@@ -242,11 +242,6 @@ export function EventDetailPage() {
     }
   };
 
-  const openManualAssignModal = (invitation: Invitation) => {
-    setSelectedInvitation(invitation);
-    setManualAssignModalOpen(true);
-  };
-
   const handleDirectConfirm = async (assignments: Array<{ skipper_id: number; role: string }>) => {
     if (!id) return;
 
@@ -451,9 +446,6 @@ export function EventDetailPage() {
 
   // Helper functions for manual assignment
   const unassignedBoats = event.event_boats.filter(eb => !eb.skipper);
-  const isAssigned = (skipperId: number) => {
-    return event.event_boats.some(eb => eb.skipper?.id === skipperId);
-  };
 
   const eventDate = new Date(event.event_date);
   const formattedDate = eventDate.toLocaleDateString('nl-NL', {
