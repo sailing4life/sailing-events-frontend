@@ -54,18 +54,9 @@ export function EventsPage() {
     const availableSkippers = useInvitations
       ? skipperInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length
       : eventBoats.filter(eb => eb.response_status === 'yes').length;
-    const confirmedSkippers = useInvitations
-      ? skipperInvitations.filter(inv => inv.status === 'confirmed').length
-      : availableSkippers;
     const availableRaceDirectors = useInvitations
       ? raceDirectorInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length
       : 0;
-    const confirmedRaceDirectors = useInvitations
-      ? raceDirectorInvitations.filter(inv => inv.status === 'confirmed').length
-      : 0;
-    const allConfirmed = requiredSkippers > 0
-      && confirmedSkippers >= requiredSkippers
-      && confirmedRaceDirectors >= requiredRaceDirectors;
     const isComplete = requiredSkippers > 0
       && availableSkippers >= requiredSkippers
       && availableRaceDirectors >= requiredRaceDirectors;
