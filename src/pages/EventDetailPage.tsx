@@ -5,19 +5,15 @@ import type { Event, InvitationStatus, Boat, Skipper, EventTypeConfig, Invitatio
 import { ManualAssignmentModal } from '../components/events/ManualAssignmentModal';
 import { DirectConfirmModal } from '../components/events/DirectConfirmModal';
 
-const getInvitationStatusBadge = (invitation: Invitation) => {
+const getInvitationStatusBadge = (status: InvitationStatus) => {
   const badges = {
     pending: { class: 'badge-pending', label: 'Wachtend', icon: '⏳' },
     available: { class: 'badge-yes', label: 'Beschikbaar', icon: '✓' },
     unavailable: { class: 'badge-no', label: 'Niet beschikbaar', icon: '✗' },
     maybe: { class: 'badge-maybe', label: 'Misschien', icon: '?' },
-    confirmed: {
-      class: 'badge-yes',
-      label: invitation.confirmed_in_person ? 'Persoonlijk bevestigd' : 'Bevestigd',
-      icon: invitation.confirmed_in_person ? '👤✓' : '✓✓'
-    },
+    confirmed: { class: 'badge-yes', label: 'Bevestigd', icon: '✓✓' },
   };
-  return badges[invitation.status];
+  return badges[status];
 };
 
 const formatEventType = (type: string) => {
@@ -698,7 +694,7 @@ export function EventDetailPage() {
                         ) : (
                           <div className="space-y-3">
                             {visibleInvitations.map((invitation) => {
-                              const statusInfo = getInvitationStatusBadge(invitation);
+                              const statusInfo = getInvitationStatusBadge(invitation.status);
                               const isRaceDirector = invitation.role === 'race_director';
                               const isHeadSkipper = invitation.role === 'head_skipper';
 
