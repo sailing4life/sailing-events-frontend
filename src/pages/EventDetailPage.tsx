@@ -493,8 +493,8 @@ export function EventDetailPage() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{event.event_name}</h1>
             <p className="text-gray-600">{event.company_name}</p>
           </div>
-          {allConfirmed ? (
-            <span className="badge badge-yes text-lg">✓ Bevestigd</span>
+          {event.workflow_phase === 'finalized' ? (
+            <span className="badge badge-yes text-lg">✓ Afgesloten</span>
           ) : isComplete ? (
             <span className="badge badge-complete text-lg">✓ Compleet</span>
           ) : (

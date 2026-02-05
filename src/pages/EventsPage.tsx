@@ -77,7 +77,8 @@ export function EventsPage() {
       return event.workflow_phase === 'finalized';
     }
     if (filterStatus === 'complete') {
-      return isComplete && !allConfirmed;
+      // Show events where all responses are in (no pending), but not yet finalized
+      return event.workflow_phase === 'invitation' && !hasPending && isComplete;
     }
     if (filterStatus === 'pending') {
       return hasPending;
