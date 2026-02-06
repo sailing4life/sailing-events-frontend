@@ -35,6 +35,36 @@ export function SkipperDetailsModal({ isOpen, skipper, onClose }: SkipperDetails
     }
   };
 
+  const formatRole = (role: string) => {
+    switch (role) {
+      case 'skipper':
+        return 'Schipper';
+      case 'head_skipper':
+        return 'Hoofdschipper';
+      case 'race_director':
+        return 'Wedstrijdleider';
+      default:
+        return role;
+    }
+  };
+
+  const formatStatus = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'Wachtend';
+      case 'available':
+        return 'Beschikbaar';
+      case 'unavailable':
+        return 'Niet beschikbaar';
+      case 'maybe':
+        return 'Misschien';
+      case 'confirmed':
+        return 'Bevestigd';
+      default:
+        return status;
+    }
+  };
+
   const loadDetails = async () => {
     if (!skipper) return;
     setLoading(true);
@@ -144,7 +174,7 @@ export function SkipperDetailsModal({ isOpen, skipper, onClose }: SkipperDetails
                           {item.company_name} • {new Date(item.event_date).toLocaleDateString('nl-NL')}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {item.role} • {item.status}
+                          {formatRole(item.role)} • {formatStatus(item.status)}
                         </p>
                       </div>
                     ))}
