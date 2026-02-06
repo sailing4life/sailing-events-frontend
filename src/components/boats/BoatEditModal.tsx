@@ -5,18 +5,34 @@ import { boatsApi } from '../../services/api';
 interface BoatEditModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onUpdated?: (boat: Boat) => void;
   boat: Boat | null;
 }
 
-export function BoatEditModal({ isOpen, onClose, boat }: BoatEditModalProps) {
+export function BoatEditModal({ isOpen, onClose, onUpdated, boat }: BoatEditModalProps) {
   const [maintenanceTasks, setMaintenanceTasks] = useState<BoatMaintenance[]>([]);
   const [newTask, setNewTask] = useState('');
   const [newPriority, setNewPriority] = useState<'low' | 'normal' | 'high' | 'urgent'>('normal');
   const [loading, setLoading] = useState(false);
+  const [savingBoat, setSavingBoat] = useState(false);
+  const [boatForm, setBoatForm] = useState({
+    name: '',
+    capacity: 0,
+    boat_type: '',
+    intern_extern: 'Intern',
+    is_active: true,
+  });
 
   useEffect(() => {
     if (isOpen && boat) {
       loadMaintenanceTasks();
+      setBoatForm({
+        name: boat.name,
+        capacity: boat.capacity,
+        boat_type: boat.boat_type,
+        intern_extern: boat.intern_extern,
+        is_active: boat.is_active,
+      });
     }
   }, [isOpen, boat]);
 
@@ -75,6 +91,28 @@ export function BoatEditModal({ isOpen, onClose, boat }: BoatEditModalProps) {
     }
   };
 
+  const handleSaveBoat = async () => {
+    if (!boat) return;
+
+    setSavingBoat(true);
+    try {
+      const updated = await boatsApi.update(boat.id, {
+        name: boatForm.name.trim(),
+        capacity: boatForm.capacity,
+        boat_type: boatForm.boat_type.trim(),
+        intern_extern: boatForm.intern_extern,
+        is_active: boatForm.is_active,
+      });
+      onUpdated?.(updated);
+      alert('Bootgegevens bijgewerkt!');
+    } catch (error) {
+      console.error('Error updating boat:', error);
+      alert('Fout bij het bijwerken van de boot');
+    } finally {
+      setSavingBoat(false);
+    }
+  };
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent': return 'text-red-600 bg-red-100';
@@ -115,6 +153,73 @@ export function BoatEditModal({ isOpen, onClose, boat }: BoatEditModalProps) {
 
         {/* Content */}
         <div className="p-6 overflow-y-auto flex-1">
+          {/* Boat Details */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Bootgegevens</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Naam</label>
+                <input
+                  type="text"
+                  value={boatForm.name}
+                  onChange={(e) => setBoatForm(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Capaciteit</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={boatForm.capacity}
+                  onChange={(e) => setBoatForm(prev => ({ ...prev, capacity: Math.max(1, parseInt(e.target.value, 10) || 1) }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <input
+                  type="text"
+                  value={boatForm.boat_type}
+                  onChange={(e) => setBoatForm(prev => ({ ...prev, boat_type: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Eigendom</label>
+                <select
+                  value={boatForm.intern_extern}
+                  onChange={(e) => setBoatForm(prev => ({ ...prev, intern_extern: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                >
+                  <option value="Intern">Intern</option>
+                  <option value="Extern">Extern</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  id="boat-active"
+                  type="checkbox"
+                  checked={boatForm.is_active}
+                  onChange={(e) => setBoatForm(prev => ({ ...prev, is_active: e.target.checked }))}
+                  className="w-4 h-4 text-cyan-600 rounded focus:ring-cyan-500"
+                />
+                <label htmlFor="boat-active" className="text-sm text-gray-700">
+                  Beschikbaar
+                </label>
+              </div>
+            </div>
+            <div className="mt-4">
+              <button
+                onClick={handleSaveBoat}
+                disabled={savingBoat || !boatForm.name.trim()}
+                className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 disabled:opacity-50 transition-colors"
+              >
+                {savingBoat ? 'Opslaan...' : 'Opslaan'}
+              </button>
+            </div>
+          </div>
+
           {/* Maintenance Section */}
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">🔧 Onderhoud Taken</h3>

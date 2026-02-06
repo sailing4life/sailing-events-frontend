@@ -48,6 +48,16 @@ export const boatsApi = {
     const response = await api.post('/api/boats', boatData);
     return response.data;
   },
+  update: async (boatId: number, boatData: {
+    name?: string;
+    capacity?: number;
+    boat_type?: string;
+    intern_extern?: string;
+    is_active?: boolean;
+  }): Promise<Boat> => {
+    const response = await api.put(`/api/boats/${boatId}`, boatData);
+    return response.data;
+  },
   toggleAvailability: async (boatId: number): Promise<Boat> => {
     const response = await api.patch(`/api/boats/${boatId}/toggle`);
     return response.data;

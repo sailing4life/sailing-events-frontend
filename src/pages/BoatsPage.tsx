@@ -53,6 +53,11 @@ export function BoatsPage() {
     setSelectedBoat(null);
   };
 
+  const handleBoatUpdated = (updatedBoat: Boat) => {
+    setBoats(prev => prev.map(b => b.id === updatedBoat.id ? updatedBoat : b));
+    setSelectedBoat(updatedBoat);
+  };
+
   const handleCreateSubmit = async () => {
     setCreating(true);
     try {
@@ -246,6 +251,7 @@ export function BoatsPage() {
       <BoatEditModal
         isOpen={showEditModal}
         onClose={handleCloseEdit}
+        onUpdated={handleBoatUpdated}
         boat={selectedBoat}
       />
     </div>
