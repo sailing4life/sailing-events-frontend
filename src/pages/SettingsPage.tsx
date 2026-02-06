@@ -14,9 +14,15 @@ export function SettingsPage() {
   const [adminNotificationsEnabled, setAdminNotificationsEnabled] = useState(false);
   const [savingNotifications, setSavingNotifications] = useState(false);
 
+  // Automatic reminder settings
+  const [automaticRemindersEnabled, setAutomaticRemindersEnabled] = useState(false);
+  const [reminderDaysBefore, setReminderDaysBefore] = useState(3);
+  const [savingReminders, setSavingReminders] = useState(false);
+
   useEffect(() => {
     loadEventTypes();
     loadAdminSettings();
+    loadReminderSettings();
   }, []);
 
   const loadEventTypes = async () => {
@@ -41,6 +47,16 @@ export function SettingsPage() {
     }
   };
 
+  const loadReminderSettings = async () => {
+    try {
+      const data = await settingsApi.getReminderSettings();
+      setAutomaticRemindersEnabled(data.automatic_reminders_enabled);
+      setReminderDaysBefore(data.reminder_days_before);
+    } catch (error) {
+      console.error('Error loading reminder settings:', error);
+    }
+  };
+
   const handleSaveAdminSettings = async () => {
     setSavingNotifications(true);
     try {
@@ -54,6 +70,22 @@ export function SettingsPage() {
       alert('Fout bij opslaan van admin instellingen');
     } finally {
       setSavingNotifications(false);
+    }
+  };
+
+  const handleSaveReminderSettings = async () => {
+    setSavingReminders(true);
+    try {
+      await settingsApi.updateReminderSettings({
+        automatic_reminders_enabled: automaticRemindersEnabled,
+        reminder_days_before: reminderDaysBefore,
+      });
+      alert('Automatische herinnering instellingen opgeslagen!');
+    } catch (error) {
+      console.error('Error saving reminder settings:', error);
+      alert('Fout bij opslaan van herinnering instellingen');
+    } finally {
+      setSavingReminders(false);
     }
   };
 
@@ -158,6 +190,53 @@ export function SettingsPage() {
               disabled={savingNotifications}
             >
               {savingNotifications ? 'Opslaan...' : 'Instellingen Opslaan'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Automatic Reminders */}
+      <div className="card mb-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">⏰ Automatische Herinneringen</h2>
+        <p className="text-sm text-gray-600 mb-4">
+          Verstuur automatisch herinneringen naar bevestigde schippers voor aankomende events.
+        </p>
+        <div className="space-y-4">
+          <div>
+            <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+              <input
+                type="checkbox"
+                checked={automaticRemindersEnabled}
+                onChange={(e) => setAutomaticRemindersEnabled(e.target.checked)}
+                className="w-4 h-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500 mr-2"
+              />
+              Automatische herinneringen inschakelen
+            </label>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Aantal dagen voor event
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="14"
+              value={reminderDaysBefore}
+              onChange={(e) => setReminderDaysBefore(parseInt(e.target.value) || 3)}
+              className="input max-w-xs"
+              disabled={!automaticRemindersEnabled}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Herinneringen worden {reminderDaysBefore} {reminderDaysBefore === 1 ? 'dag' : 'dagen'} voor het event verstuurd
+            </p>
+          </div>
+          <div>
+            <button
+              onClick={handleSaveReminderSettings}
+              className="btn-primary"
+              disabled={savingReminders}
+            >
+              {savingReminders ? 'Opslaan...' : 'Instellingen Opslaan'}
             </button>
           </div>
         </div>

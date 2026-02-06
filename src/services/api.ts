@@ -346,6 +346,14 @@ export const settingsApi = {
     const response = await api.put('/api/settings/admin-notifications', settings);
     return response.data;
   },
+  getReminderSettings: async (): Promise<{ automatic_reminders_enabled: boolean; reminder_days_before: number }> => {
+    const response = await api.get('/api/settings/reminders');
+    return response.data;
+  },
+  updateReminderSettings: async (settings: { automatic_reminders_enabled: boolean; reminder_days_before: number }): Promise<{ automatic_reminders_enabled: boolean; reminder_days_before: number }> => {
+    const response = await api.put('/api/settings/reminders', settings);
+    return response.data;
+  },
 };
 
 // Invitations API
