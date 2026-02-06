@@ -59,7 +59,8 @@ export function CreateEventPage() {
       setSkippers(skippersData.filter(s => s.is_active));
       setEventTypes(eventTypesData);
       if (eventTypesData.length > 0 && !formData.event_type) {
-        const initialType = eventTypesData[0].code;
+        const initialType = eventTypesData.find(type => type.code === 'event')?.code
+          || eventTypesData[0].code;
         setFormData(prev => ({
           ...prev,
           event_type: initialType,
@@ -132,7 +133,9 @@ export function CreateEventPage() {
       const updated = await eventTypesApi.getAll();
       setEventTypes(updated);
       if (!formData.event_type && updated.length > 0) {
-        setFormData(prev => ({ ...prev, event_type: updated[0].code }));
+        const defaultType = updated.find(type => type.code === 'event')?.code
+          || updated[0].code;
+        setFormData(prev => ({ ...prev, event_type: defaultType }));
       }
       setNewTypeLabel('');
     } catch (error) {
