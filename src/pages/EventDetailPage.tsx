@@ -4,6 +4,7 @@ import { eventsApi, invitationsApi, boatsApi, skippersApi, eventTypesApi } from 
 import type { Event, InvitationStatus, Boat, Skipper, EventTypeConfig, Invitation } from '../types';
 import { ManualAssignmentModal } from '../components/events/ManualAssignmentModal';
 import { DirectConfirmModal } from '../components/events/DirectConfirmModal';
+import { ReplaceSkipperModal } from '../components/events/ReplaceSkipperModal';
 
 const getInvitationStatusBadge = (status: InvitationStatus) => {
   const badges = {
@@ -42,6 +43,8 @@ export function EventDetailPage() {
   const [manualAssignModalOpen, setManualAssignModalOpen] = useState(false);
   const [selectedInvitation, setSelectedInvitation] = useState<Invitation | null>(null);
   const [directConfirmModalOpen, setDirectConfirmModalOpen] = useState(false);
+  const [replaceModalOpen, setReplaceModalOpen] = useState(false);
+  const [invitationToReplace, setInvitationToReplace] = useState<Invitation | null>(null);
   const [editFormData, setEditFormData] = useState({
     event_name: '',
     company_name: '',
@@ -265,6 +268,32 @@ export function EventDetailPage() {
       alert(errorMessage);
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleReplaceSkipper = async (invitationId: number, replacementSkipperId: number, reason: string) => {
+    if (!id) return;
+
+    try {
+      const result = await eventsApi.replaceSkipper(parseInt(id), {
+        original_invitation_id: invitationId,
+        replacement_skipper_id: replacementSkipperId,
+        replacement_reason: reason
+      });
+
+      const emailStatus = result.cancellation_email_sent && result.confirmation_email_sent
+        ? 'Emails verstuurd naar beide schippers'
+        : 'Let op: niet alle emails zijn verstuurd';
+
+      alert(`${result.message}\n${emailStatus}`);
+
+      // Reload event data
+      await loadEvent();
+    } catch (error: any) {
+      console.error('Error replacing skipper:', error);
+      const errorMessage = error.response?.data?.detail || 'Fout bij het vervangen van schipper';
+      alert(errorMessage);
+      throw error;
     }
   };
 
@@ -519,8 +548,9 @@ export function EventDetailPage() {
         <div className="flex gap-3">
           <button
             onClick={handleOpenEditModal}
-            disabled={actionLoading}
+            disabled={actionLoading || event.workflow_phase === 'finalized'}
             className="px-4 py-2 rounded-lg font-medium transition-colors bg-cyan-600 text-white hover:bg-cyan-700 disabled:opacity-50"
+            title={event.workflow_phase === 'finalized' ? 'Event is afgesloten en kan niet meer bewerkt worden' : ''}
           >
             ✏️ Event Bewerken
           </button>
@@ -678,8 +708,9 @@ export function EventDetailPage() {
                           </div>
                           <button
                             onClick={() => handleOpenInviteModal(group.role === 'race_director' ? 'race_director' : group.role === 'head_skipper' ? 'head_skipper' : 'skippers')}
-                            disabled={actionLoading}
+                            disabled={actionLoading || event.workflow_phase === 'finalized'}
                             className="btn-primary flex items-center gap-2 disabled:opacity-50"
+                            title={event.workflow_phase === 'finalized' ? 'Kan geen nieuwe uitnodigingen versturen voor afgesloten events' : ''}
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -726,7 +757,7 @@ export function EventDetailPage() {
                                 ✉️ Herinner
                               </button>
                             )}
-                            {invitation.status === 'available' && !isRaceDirector && (
+                            {invitation.status === 'available' && !isRaceDirector && event.workflow_phase === 'invitation' && (
                               <button
                                 onClick={() => handleConfirmInvitation(
                                   invitation.id,
@@ -736,6 +767,18 @@ export function EventDetailPage() {
                                 className="px-3 py-1 text-sm rounded-lg font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
                               >
                                 ✓ Bevestig
+                              </button>
+                            )}
+                            {invitation.status === 'confirmed' && !isRaceDirector && event.workflow_phase === 'finalized' && (
+                              <button
+                                onClick={() => {
+                                  setInvitationToReplace(invitation);
+                                  setReplaceModalOpen(true);
+                                }}
+                                disabled={actionLoading}
+                                className="px-3 py-1 text-sm rounded-lg font-medium bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50 transition-colors"
+                              >
+                                🔄 Vervangen
                               </button>
                             )}
                                       <span className={`badge ${statusInfo.class}`}>
@@ -1229,6 +1272,18 @@ export function EventDetailPage() {
           onConfirm={handleDirectConfirm}
         />
       )}
+
+      {/* Replace Skipper Modal */}
+      <ReplaceSkipperModal
+        isOpen={replaceModalOpen}
+        onClose={() => {
+          setReplaceModalOpen(false);
+          setInvitationToReplace(null);
+        }}
+        invitation={invitationToReplace}
+        availableSkippers={skippers.filter(s => !invitedSkipperIds.has(s.id))}
+        onReplace={handleReplaceSkipper}
+      />
     </div>
   );
 }

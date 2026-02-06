@@ -271,6 +271,22 @@ export const eventsApi = {
     const response = await api.post(`/api/events/${eventId}/close`);
     return response.data;
   },
+
+  replaceSkipper: async (eventId: number, data: {
+    original_invitation_id: number;
+    replacement_skipper_id: number;
+    replacement_reason: string;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    original_invitation_id: number;
+    replacement_invitation_id: number;
+    cancellation_email_sent: boolean;
+    confirmation_email_sent: boolean;
+  }> => {
+    const response = await api.post(`/api/events/${eventId}/replace-skipper`, data);
+    return response.data;
+  },
 };
 
 // Event Types API
