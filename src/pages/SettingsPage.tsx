@@ -199,7 +199,7 @@ export function SettingsPage() {
       <div className="card mb-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">⏰ Automatische Herinneringen</h2>
         <p className="text-sm text-gray-600 mb-4">
-          Verstuur automatisch herinneringen naar bevestigde schippers voor aankomende events.
+          Verstuur automatisch herinneringen naar schippers die nog niet hebben gereageerd op uitnodigingen.
         </p>
         <div className="space-y-4">
           <div>
@@ -215,7 +215,7 @@ export function SettingsPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Aantal dagen voor event
+              Aantal dagen na uitnodiging
             </label>
             <input
               type="number"
@@ -227,7 +227,7 @@ export function SettingsPage() {
               disabled={!automaticRemindersEnabled}
             />
             <p className="text-xs text-gray-500 mt-1">
-              Herinneringen worden {reminderDaysBefore} {reminderDaysBefore === 1 ? 'dag' : 'dagen'} voor het event verstuurd
+              Herinneringen worden verstuurd naar schippers die {reminderDaysBefore} {reminderDaysBefore === 1 ? 'dag' : 'dagen'} geleden uitgenodigd zijn en nog niet hebben gereageerd
             </p>
           </div>
           <div>
