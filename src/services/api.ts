@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Boat, BoatMaintenance, Skipper, Event, Invitation, EventTypeConfig, NotificationItem } from '../types';
+import type { Boat, BoatMaintenance, Skipper, Event, Invitation, EventTypeConfig, NotificationItem, SkipperEventHistory, SkipperOpenEvent } from '../types';
 
 // API Base URL - uses environment variable if available, falls back to localhost
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -100,6 +100,14 @@ export const skippersApi = {
   getAll: async (): Promise<Skipper[]> => {
     const response = await api.get('/api/skippers');
     return ensureArray<Skipper>(response.data, 'skippers');
+  },
+  getHistory: async (skipperId: number): Promise<SkipperEventHistory[]> => {
+    const response = await api.get(`/api/skippers/${skipperId}/history`);
+    return ensureArray<SkipperEventHistory>(response.data, 'skipper history');
+  },
+  getOpenEvents: async (skipperId: number): Promise<SkipperOpenEvent[]> => {
+    const response = await api.get(`/api/skippers/${skipperId}/open-events`);
+    return ensureArray<SkipperOpenEvent>(response.data, 'open events');
   },
   create: async (skipperData: {
     first_name: string;

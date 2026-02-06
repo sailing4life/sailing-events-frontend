@@ -99,3 +99,22 @@ export interface NotificationItem {
   is_read: boolean;
   created_at: string;
 }
+
+export interface SkipperEventHistory {
+  event_id: number;
+  event_name: string;
+  company_name: string;
+  event_date: string;
+  duration: string;
+  role: string;
+  status: string;
+}
+
+export interface SkipperOpenEvent {
+  event_id: number;
+  event_name: string;
+  company_name: string;
+  event_date: string;
+  duration: string;
+  remaining_skippers: number;
+}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { skippersApi, excelApi } from '../services/api';
 import type { Skipper } from '../types';
+import { SkipperDetailsModal } from '../components/skippers/SkipperDetailsModal';
 
 export function SkippersPage() {
   const [skippers, setSkippers] = useState<Skipper[]>([]);
@@ -9,7 +10,9 @@ export function SkippersPage() {
   const [creating, setCreating] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [editingSkipper, setEditingSkipper] = useState<Skipper | null>(null);
+  const [selectedSkipper, setSelectedSkipper] = useState<Skipper | null>(null);
   const [createFormData, setCreateFormData] = useState({
     first_name: '',
     last_name: '',
@@ -80,6 +83,16 @@ export function SkippersPage() {
       is_coach: skipper.is_coach,
     });
     setShowEditModal(true);
+  };
+
+  const handleOpenDetails = (skipper: Skipper) => {
+    setSelectedSkipper(skipper);
+    setShowDetailsModal(true);
+  };
+
+  const handleCloseDetails = () => {
+    setShowDetailsModal(false);
+    setSelectedSkipper(null);
   };
 
   const handleEditSubmit = async () => {
@@ -176,6 +189,12 @@ export function SkippersPage() {
                 <p className="text-sm text-gray-500">{skipper.email}</p>
               </div>
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleOpenDetails(skipper)}
+                  className="text-cyan-600 hover:text-cyan-700 text-sm font-medium"
+                >
+                  Details
+                </button>
                 <button
                   onClick={() => handleOpenEditModal(skipper)}
                   className="text-blue-600 hover:text-blue-700 text-sm font-medium"
@@ -384,6 +403,12 @@ export function SkippersPage() {
           </div>
         </div>
       )}
+
+      <SkipperDetailsModal
+        isOpen={showDetailsModal}
+        skipper={selectedSkipper}
+        onClose={handleCloseDetails}
+      />
 
       {/* Edit Modal */}
       {showEditModal && editingSkipper && (
