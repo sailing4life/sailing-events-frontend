@@ -1193,6 +1193,11 @@ export function EventDetailPage() {
                                 {skipper.first_name} {skipper.last_name}
                               </p>
                               <p className="text-sm text-gray-600">{skipper.email}</p>
+                              {skipper.notes && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Notities: {skipper.notes}
+                                </p>
+                              )}
                               <p className="text-xs text-gray-500 mt-1">
                                 Tarief: €{event.duration === 'half_day' ? skipper.half_day_rate : skipper.full_day_rate}
                               </p>

@@ -436,13 +436,18 @@ export function CreateEventPage() {
                     >
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="font-medium text-gray-900">
-                            {skipper.first_name} {skipper.last_name}
+                        <p className="font-medium text-gray-900">
+                          {skipper.first_name} {skipper.last_name}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
+                        </p>
+                        {skipper.notes && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Notities: {skipper.notes}
                           </p>
-                          <p className="text-sm text-gray-600">
-                            €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
-                          </p>
-                        </div>
+                        )}
+                      </div>
                         {formData.selected_head_skipper === skipper.id && (
                           <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -479,13 +484,18 @@ export function CreateEventPage() {
                     >
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="font-medium text-gray-900">
-                            {skipper.first_name} {skipper.last_name}
+                        <p className="font-medium text-gray-900">
+                          {skipper.first_name} {skipper.last_name}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
+                        </p>
+                        {skipper.notes && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Notities: {skipper.notes}
                           </p>
-                          <p className="text-sm text-gray-600">
-                            €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
-                          </p>
-                        </div>
+                        )}
+                      </div>
                         {formData.selected_skippers.includes(skipper.id) && (
                           <svg className="w-5 h-5 text-cyan-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -525,13 +535,18 @@ export function CreateEventPage() {
                     >
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="font-medium text-gray-900">
-                            {skipper.first_name} {skipper.last_name}
+                        <p className="font-medium text-gray-900">
+                          {skipper.first_name} {skipper.last_name}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
+                        </p>
+                        {skipper.notes && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Notities: {skipper.notes}
                           </p>
-                          <p className="text-sm text-gray-600">
-                            €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
-                          </p>
-                        </div>
+                        )}
+                      </div>
                         {formData.selected_race_directors.includes(skipper.id) && (
                           <svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -627,11 +642,16 @@ export function CreateEventPage() {
                       return (
                         <div className="bg-blue-50 rounded-lg p-3 flex justify-between items-center">
                           <div>
-                            <p className="font-medium">
-                              {skipper?.first_name} {skipper?.last_name}
+                          <p className="font-medium">
+                            {skipper?.first_name} {skipper?.last_name}
+                          </p>
+                          <p className="text-sm text-gray-600">👑 Hoofdschipper</p>
+                          {skipper?.notes && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Notities: {skipper?.notes}
                             </p>
-                            <p className="text-sm text-gray-600">👑 Hoofdschipper</p>
-                          </div>
+                          )}
+                        </div>
                           <span className="text-sm font-medium text-gray-700">
                             €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
                           </span>
@@ -655,6 +675,11 @@ export function CreateEventPage() {
                             {skipper?.first_name} {skipper?.last_name}
                           </p>
                           <p className="text-sm text-gray-600">⛵ Schipper</p>
+                          {skipper?.notes && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Notities: {skipper?.notes}
+                            </p>
+                          )}
                         </div>
                         <span className="text-sm font-medium text-gray-700">
                           €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
@@ -675,11 +700,16 @@ export function CreateEventPage() {
                       return (
                         <div key={skipperId} className="bg-purple-50 rounded-lg p-3 flex justify-between items-center">
                           <div>
-                            <p className="font-medium">
-                              {skipper?.first_name} {skipper?.last_name}
+                          <p className="font-medium">
+                            {skipper?.first_name} {skipper?.last_name}
+                          </p>
+                          <p className="text-sm text-gray-600">📋 Wedstrijdleiding</p>
+                          {skipper?.notes && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Notities: {skipper?.notes}
                             </p>
-                            <p className="text-sm text-gray-600">📋 Wedstrijdleiding</p>
-                          </div>
+                          )}
+                        </div>
                           <span className="text-sm font-medium text-gray-700">
                             €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
                           </span>
