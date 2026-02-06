@@ -826,7 +826,7 @@ export function EventDetailPage() {
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
                     className="bg-orange-500 h-3 rounded-full transition-all duration-300"
-                    style={{ width: `${(availableCount / totalRequired) * 100}%` }}
+                    style={{ width: `${Math.min((availableCount / totalRequired) * 100, 100)}%` }}
                   />
                 </div>
                 <p className="text-sm text-gray-600 mt-2 text-center">
