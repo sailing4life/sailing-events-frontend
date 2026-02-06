@@ -743,6 +743,11 @@ export function EventDetailPage() {
                                         {invitation.skipper.first_name} {invitation.skipper.last_name}
                                       </p>
                                       <p className="text-sm text-gray-600">{invitation.skipper.email}</p>
+                                      {invitation.skipper.notes && (
+                                        <p className="text-sm text-gray-500 mt-1">
+                                          Notities: {invitation.skipper.notes}
+                                        </p>
+                                      )}
                                     </div>
                           <div className="flex items-center gap-2">
                             {invitation.status === 'pending' && (
