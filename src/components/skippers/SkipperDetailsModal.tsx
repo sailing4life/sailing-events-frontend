@@ -20,6 +20,21 @@ export function SkipperDetailsModal({ isOpen, skipper, onClose }: SkipperDetails
     }
   }, [isOpen, skipper]);
 
+  const formatDuration = (duration: string) => {
+    switch (duration) {
+      case 'morning':
+        return 'Ochtend';
+      case 'afternoon':
+        return 'Middag';
+      case 'half_day':
+        return 'Halve dag';
+      case 'full_day':
+        return 'Hele dag';
+      default:
+        return duration;
+    }
+  };
+
   const loadDetails = async () => {
     if (!skipper) return;
     setLoading(true);
@@ -97,7 +112,7 @@ export function SkipperDetailsModal({ isOpen, skipper, onClose }: SkipperDetails
                         <div>
                           <p className="font-medium text-gray-900">{event.event_name}</p>
                           <p className="text-sm text-gray-600">
-                            {event.company_name} • {new Date(event.event_date).toLocaleDateString('nl-NL')}
+                            {event.company_name} • {new Date(event.event_date).toLocaleDateString('nl-NL')} • {formatDuration(event.duration)}
                           </p>
                           <p className="text-xs text-gray-500">
                             Nog nodig: {event.remaining_skippers}
