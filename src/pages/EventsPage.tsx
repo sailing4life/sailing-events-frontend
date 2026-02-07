@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { eventsApi, eventTypesApi } from '../services/api';
 import { EventCard } from '../components/events/EventCard';
+import { EventCalendarView } from '../components/events/EventCalendarView';
 import { EventCardSkeleton } from '../components/common/Skeleton';
 import type { Event, EventTypeConfig } from '../types';
 import { toast } from 'sonner';
+
+type ViewMode = 'cards' | 'calendar';
 
 export function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -11,6 +14,7 @@ export function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'confirmed' | 'complete' | 'pending'>('all');
+  const [viewMode, setViewMode] = useState<ViewMode>('cards');
 
   useEffect(() => {
     loadEvents();
@@ -121,7 +125,7 @@ export function EventsPage() {
         <p className="text-gray-600">Beheer al je zeilevenementen op één plek</p>
       </div>
 
-      {/* Filters and Search */}
+      {/* View Toggle and Filters */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
           <input
@@ -133,6 +137,37 @@ export function EventsPage() {
           />
         </div>
         <div className="flex gap-2">
+          {/* View toggle */}
+          <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+            <button
+              onClick={() => setViewMode('cards')}
+              className={`px-3 py-2 transition-colors ${
+                viewMode === 'cards'
+                  ? 'bg-cyan-600 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-100'
+              }`}
+              title="Kaart weergave"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setViewMode('calendar')}
+              className={`px-3 py-2 transition-colors ${
+                viewMode === 'calendar'
+                  ? 'bg-cyan-600 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-100'
+              }`}
+              title="Kalender weergave"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Status filters */}
           <button
             onClick={() => setFilterStatus('all')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -175,15 +210,19 @@ export function EventsPage() {
           </button>
         </div>
       </div>
-      <div className="mb-8 flex flex-wrap gap-2 text-sm text-gray-600">
-        <span className="badge badge-available">Beschikbaar</span>
-        <span className="badge badge-complete">Compleet</span>
-        <span className="badge badge-yes">Afgesloten</span>
-        <span className="badge badge-pending">Wachtend</span>
-      </div>
+      {viewMode === 'cards' && (
+        <div className="mb-8 flex flex-wrap gap-2 text-sm text-gray-600">
+          <span className="badge badge-available">Beschikbaar</span>
+          <span className="badge badge-complete">Compleet</span>
+          <span className="badge badge-yes">Afgesloten</span>
+          <span className="badge badge-pending">Wachtend</span>
+        </div>
+      )}
 
-      {/* Events Grid */}
-      {filteredEvents.length === 0 ? (
+      {/* Events Display */}
+      {viewMode === 'calendar' ? (
+        <EventCalendarView events={filteredEvents} eventTypeLabels={eventTypeLabels} />
+      ) : filteredEvents.length === 0 ? (
         <div className="text-center py-12">
           <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
