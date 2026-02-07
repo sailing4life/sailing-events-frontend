@@ -9,7 +9,7 @@ interface DirectConfirmModalProps {
   onConfirm: (assignments: Array<{ skipper_id: number; role: string }>) => Promise<void>;
 }
 
-type RoleType = 'skipper' | 'head_skipper' | 'race_director';
+type RoleType = 'skipper' | 'head_skipper' | 'race_director' | 'coach';
 
 export function DirectConfirmModal({
   isOpen,
@@ -43,7 +43,8 @@ export function DirectConfirmModal({
     const roleLabel = {
       skipper: 'schipper(s)',
       head_skipper: 'hoofdschipper',
-      race_director: 'wedstrijdleider(s)'
+      race_director: 'wedstrijdleider(s)',
+      coach: 'coach(es)'
     }[selectedRole];
 
     if (!confirm(`Wil je ${selectedSkippers.size} ${roleLabel} direct bevestigen voor dit event?`)) {
@@ -116,6 +117,7 @@ export function DirectConfirmModal({
               <option value="skipper">⛵ Schipper</option>
               <option value="head_skipper">👑 Hoofdschipper</option>
               <option value="race_director">📋 Wedstrijdleider</option>
+              <option value="coach">🏅 Coach</option>
             </select>
           </div>
 

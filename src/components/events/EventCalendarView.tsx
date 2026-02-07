@@ -24,20 +24,26 @@ function getEventStatus(event: Event): 'finalized' | 'complete' | 'pending' {
   if (event.workflow_phase === 'finalized') return 'finalized';
 
   if (useInvitations) {
-    const skipperInvitations = invitations.filter(inv => inv.role !== 'race_director');
+    const skipperInvitations = invitations.filter(inv => inv.role !== 'race_director' && inv.role !== 'coach');
     const raceDirectorInvitations = invitations.filter(inv => inv.role === 'race_director');
+    const coachInvitations = invitations.filter(inv => inv.role === 'coach');
     const skipperAvailable = skipperInvitations.filter(
       inv => inv.status === 'available' || inv.status === 'confirmed'
     ).length;
     const raceDirectorAvailable = raceDirectorInvitations.filter(
       inv => inv.status === 'available' || inv.status === 'confirmed'
     ).length;
+    const coachAvailable = coachInvitations.filter(
+      inv => inv.status === 'available' || inv.status === 'confirmed'
+    ).length;
     const requiredSkippers = eventBoats.length;
     const requiredRaceDirectors = event.required_race_directors || 0;
+    const requiredCoaches = event.required_coaches || 0;
     const isComplete =
       requiredSkippers > 0 &&
       skipperAvailable >= requiredSkippers &&
-      raceDirectorAvailable >= requiredRaceDirectors;
+      raceDirectorAvailable >= requiredRaceDirectors &&
+      coachAvailable >= requiredCoaches;
     return isComplete ? 'complete' : 'pending';
   }
 

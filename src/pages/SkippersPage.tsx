@@ -23,6 +23,7 @@ export function SkippersPage() {
     notes: '',
     is_active: true,
     is_coach: false,
+    is_race_director: false,
   });
   const [editFormData, setEditFormData] = useState({
     first_name: '',
@@ -34,6 +35,7 @@ export function SkippersPage() {
     notes: '',
     is_active: true,
     is_coach: false,
+    is_race_director: false,
   });
 
   useEffect(() => {
@@ -81,6 +83,7 @@ export function SkippersPage() {
       notes: skipper.notes || '',
       is_active: skipper.is_active,
       is_coach: skipper.is_coach,
+      is_race_director: skipper.is_race_director,
     });
     setShowEditModal(true);
   };
@@ -125,6 +128,7 @@ export function SkippersPage() {
         notes: '',
         is_active: true,
         is_coach: false,
+        is_race_director: false,
       });
       await loadSkippers();
     } catch (error) {
@@ -207,6 +211,22 @@ export function SkippersPage() {
                 </span>
               </div>
             </div>
+
+            {/* Role badges */}
+            {(skipper.is_coach || skipper.is_race_director) && (
+              <div className="flex flex-wrap gap-1 mb-3">
+                {skipper.is_coach && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                    Coach
+                  </span>
+                )}
+                {skipper.is_race_director && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                    Wedstrijdleider
+                  </span>
+                )}
+              </div>
+            )}
 
             <div className="space-y-2 mb-4">
               <div className="flex items-center text-sm text-gray-600">
@@ -379,6 +399,18 @@ export function SkippersPage() {
                     />
                     <label htmlFor="create_is_coach" className="ml-2 text-sm font-medium text-gray-700">
                       Coach (kan coaching events doen)
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="create_is_race_director"
+                      checked={createFormData.is_race_director}
+                      onChange={(e) => setCreateFormData({ ...createFormData, is_race_director: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="create_is_race_director" className="ml-2 text-sm font-medium text-gray-700">
+                      Wedstrijdleider (kan wedstrijdleiding doen)
                     </label>
                   </div>
                 </div>
@@ -560,6 +592,18 @@ export function SkippersPage() {
                     />
                     <label htmlFor="is_coach" className="ml-2 text-sm font-medium text-gray-700">
                       Coach (kan coaching events doen)
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="is_race_director"
+                      checked={editFormData.is_race_director}
+                      onChange={(e) => setEditFormData({ ...editFormData, is_race_director: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="is_race_director" className="ml-2 text-sm font-medium text-gray-700">
+                      Wedstrijdleider (kan wedstrijdleiding doen)
                     </label>
                   </div>
                 </div>

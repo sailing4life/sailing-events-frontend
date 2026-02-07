@@ -119,6 +119,7 @@ export const skippersApi = {
     notes?: string;
     is_active: boolean;
     is_coach: boolean;
+    is_race_director: boolean;
   }): Promise<Skipper> => {
     const response = await api.post('/api/skippers', skipperData);
     return response.data;
@@ -134,6 +135,7 @@ export const skippersApi = {
     notes?: string;
     is_active: boolean;
     is_coach: boolean;
+    is_race_director: boolean;
   }): Promise<Skipper> => {
     const response = await api.put(`/api/skippers/${skipperId}`, skipperData);
     return response.data;
@@ -182,6 +184,7 @@ export const eventsApi = {
     event_type: string;
     notes?: string;
     required_race_directors: number;
+    required_coaches: number;
     boat_ids: number[];
   }): Promise<Event> => {
     const response = await api.post('/api/events', eventData);
@@ -196,6 +199,7 @@ export const eventsApi = {
     event_type: string;
     notes?: string;
     required_race_directors: number;
+    required_coaches: number;
     boat_ids?: number[];
   }): Promise<Event> => {
     const response = await api.put(`/api/events/${eventId}`, eventData);
@@ -223,6 +227,7 @@ export const eventsApi = {
       skipper_ids?: number[];
       head_skipper_id?: number;
       race_director_ids?: number[];
+      coach_ids?: number[];
     }
   ): Promise<{
     message: string;

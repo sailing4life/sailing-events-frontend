@@ -11,10 +11,12 @@ interface EventFormData {
   event_type: string;
   notes: string;
   required_race_directors: number;
+  required_coaches: number;
   selected_boats: number[];
   selected_head_skipper: number | null;
   selected_skippers: number[];
   selected_race_directors: number[];
+  selected_coaches: number[];
 }
 
 export function CreateEventPage() {
@@ -36,10 +38,12 @@ export function CreateEventPage() {
     event_type: '',
     notes: '',
     required_race_directors: 0,
+    required_coaches: 0,
     selected_boats: [],
     selected_head_skipper: null,
     selected_skippers: [],
     selected_race_directors: [],
+    selected_coaches: [],
   });
 
   const totalSteps = 4;
@@ -95,15 +99,19 @@ export function CreateEventPage() {
         event_type: formData.event_type,
         notes: formData.notes || undefined,
         required_race_directors: formData.required_race_directors,
+        required_coaches: formData.required_coaches,
         boat_ids: formData.selected_boats,
       });
 
-      // Step 2: Send invitations to skippers, head skipper, and race directors
+      // Step 2: Send invitations to skippers, head skipper, race directors and coaches
       const invitationResult = await eventsApi.sendInvitations(event.id, {
         skipper_ids: formData.selected_skippers,
         head_skipper_id: formData.selected_head_skipper || undefined,
         race_director_ids: formData.selected_race_directors.length > 0
           ? formData.selected_race_directors
+          : undefined,
+        coach_ids: formData.selected_coaches.length > 0
+          ? formData.selected_coaches
           : undefined,
       });
 
@@ -170,6 +178,15 @@ export function CreateEventPage() {
       selected_race_directors: prev.selected_race_directors.includes(skipperId)
         ? prev.selected_race_directors.filter(id => id !== skipperId)
         : [...prev.selected_race_directors, skipperId],
+    }));
+  };
+
+  const toggleCoach = (skipperId: number) => {
+    setFormData(prev => ({
+      ...prev,
+      selected_coaches: prev.selected_coaches.includes(skipperId)
+        ? prev.selected_coaches.filter(id => id !== skipperId)
+        : [...prev.selected_coaches, skipperId],
     }));
   };
 
@@ -337,6 +354,24 @@ export function CreateEventPage() {
               <p className="text-xs text-gray-500 mt-1">Aantal wedstrijdleiders dat nodig is voor dit event.</p>
             </div>
 
+            {formData.event_type === 'coaching' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Coaches nodig</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.required_coaches}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    required_coaches: Math.max(0, parseInt(e.target.value, 10) || 0)
+                  })}
+                  className="input-field"
+                  placeholder="0"
+                />
+                <p className="text-xs text-gray-500 mt-1">Aantal coaches dat nodig is voor dit coaching event.</p>
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Notities (optioneel)</label>
               <textarea
@@ -426,6 +461,7 @@ export function CreateEventPage() {
                 {skippers
                   .filter(s => !formData.selected_skippers.includes(s.id))
                   .filter(s => !formData.selected_race_directors.includes(s.id))
+                  .filter(s => !formData.selected_coaches.includes(s.id))
                   .filter(s => formData.event_type !== 'coaching' || s.is_coach)
                   .map((skipper) => (
                     <div
@@ -474,6 +510,7 @@ export function CreateEventPage() {
                 {skippers
                   .filter(s => s.id !== formData.selected_head_skipper)
                   .filter(s => !formData.selected_race_directors.includes(s.id))
+                  .filter(s => !formData.selected_coaches.includes(s.id))
                   .filter(s => formData.event_type !== 'coaching' || s.is_coach)
                   .map((skipper) => (
                     <div
@@ -525,7 +562,8 @@ export function CreateEventPage() {
                 {skippers
                   .filter(s => s.id !== formData.selected_head_skipper)
                   .filter(s => !formData.selected_skippers.includes(s.id))
-                  .filter(s => formData.event_type !== 'coaching' || s.is_coach)
+                  .filter(s => !formData.selected_coaches.includes(s.id))
+                  .filter(s => s.is_race_director)
                   .map((skipper) => (
                     <div
                       key={skipper.id}
@@ -561,6 +599,61 @@ export function CreateEventPage() {
               </div>
             </div>
 
+            {/* Coach selection (only for coaching events) */}
+            {formData.event_type === 'coaching' && (
+              <div className="border-t pt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-900">🏅 Coaches</h3>
+                  <span className="text-sm text-gray-600">
+                    {formData.selected_coaches.length} geselecteerd
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 mb-3">
+                  Coaches krijgen geen boot toegewezen maar worden wel uitgenodigd
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {skippers
+                    .filter(s => s.id !== formData.selected_head_skipper)
+                    .filter(s => !formData.selected_skippers.includes(s.id))
+                    .filter(s => !formData.selected_race_directors.includes(s.id))
+                    .filter(s => s.is_coach)
+                    .map((skipper) => (
+                      <div
+                        key={skipper.id}
+                        onClick={() => toggleCoach(skipper.id)}
+                        className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          formData.selected_coaches.includes(skipper.id)
+                            ? 'border-green-600 bg-green-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                          <p className="font-medium text-gray-900">
+                            {skipper.first_name} {skipper.last_name}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
+                          </p>
+                          {skipper.notes && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Notities: {skipper.notes}
+                            </p>
+                          )}
+                        </div>
+                          {formData.selected_coaches.includes(skipper.id) && (
+                            <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
             {(() => {
               const totalSkippers = formData.selected_skippers.length + (formData.selected_head_skipper ? 1 : 0);
               const shortage = formData.selected_boats.length - totalSkippers;
@@ -578,6 +671,16 @@ export function CreateEventPage() {
                 <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-sm text-yellow-800">
                     ⚠️ Je hebt nog {shortage} wedstrijdleider(s) te weinig geselecteerd
+                  </p>
+                </div>
+              );
+            })()}
+            {(() => {
+              const shortage = formData.required_coaches - formData.selected_coaches.length;
+              return shortage > 0 && formData.event_type === 'coaching' && (
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    ⚠️ Je hebt nog {shortage} coach(es) te weinig geselecteerd
                   </p>
                 </div>
               );
@@ -707,6 +810,36 @@ export function CreateEventPage() {
                             {skipper?.first_name} {skipper?.last_name}
                           </p>
                           <p className="text-sm text-gray-600">📋 Wedstrijdleiding</p>
+                          {skipper?.notes && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Notities: {skipper?.notes}
+                            </p>
+                          )}
+                        </div>
+                          <span className="text-sm font-medium text-gray-700">
+                            €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Invited Coaches */}
+              {formData.selected_coaches.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Uitgenodigde Coaches</h3>
+                  <div className="space-y-2">
+                    {formData.selected_coaches.map((skipperId) => {
+                      const skipper = skippers.find(s => s.id === skipperId);
+                      return (
+                        <div key={skipperId} className="bg-green-50 rounded-lg p-3 flex justify-between items-center">
+                          <div>
+                          <p className="font-medium">
+                            {skipper?.first_name} {skipper?.last_name}
+                          </p>
+                          <p className="text-sm text-gray-600">🏅 Coach</p>
                           {skipper?.notes && (
                             <p className="text-xs text-gray-500 mt-1">
                               Notities: {skipper?.notes}

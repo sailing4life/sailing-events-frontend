@@ -2,7 +2,7 @@ export type EventDuration = 'half_day' | 'morning' | 'afternoon' | 'full_day';
 export type EventType = string;
 export type ResponseStatus = 'pending' | 'yes' | 'no' | 'maybe';
 export type EventWorkflowPhase = 'invitation' | 'finalized';
-export type InvitationRole = 'skipper' | 'head_skipper' | 'race_director';
+export type InvitationRole = 'skipper' | 'head_skipper' | 'race_director' | 'coach';
 export type InvitationStatus = 'pending' | 'available' | 'unavailable' | 'maybe' | 'confirmed';
 
 export interface Boat {
@@ -37,6 +37,7 @@ export interface Skipper {
   notes?: string;
   is_active: boolean;
   is_coach: boolean;
+  is_race_director: boolean;
 }
 
 export interface EventBoat {
@@ -66,6 +67,7 @@ export interface Event {
   event_type: EventType;
   notes?: string;
   required_race_directors: number;
+  required_coaches: number;
   workflow_phase: EventWorkflowPhase;
   event_boats: EventBoat[];
   invitations: Invitation[];

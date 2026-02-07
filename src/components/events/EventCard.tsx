@@ -73,18 +73,22 @@ export function EventCard({ event, eventTypeLabels }: EventCardProps) {
   let isComplete = false;
 
   if (useInvitations) {
-    // New workflow: count available skippers (excluding race directors)
-    const skipperInvitations = invitations.filter(inv => inv.role !== 'race_director');
+    // New workflow: count available skippers (excluding race directors and coaches)
+    const skipperInvitations = invitations.filter(inv => inv.role !== 'race_director' && inv.role !== 'coach');
     const raceDirectorInvitations = invitations.filter(inv => inv.role === 'race_director');
+    const coachInvitations = invitations.filter(inv => inv.role === 'coach');
     const skipperAvailable = skipperInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
     const raceDirectorAvailable = raceDirectorInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
+    const coachAvailable = coachInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
     const requiredSkippers = event.event_boats.length;
     const requiredRaceDirectors = event.required_race_directors || 0;
-    availableCount = skipperAvailable + raceDirectorAvailable;
-    totalRequired = requiredSkippers + requiredRaceDirectors;
+    const requiredCoaches = event.required_coaches || 0;
+    availableCount = skipperAvailable + raceDirectorAvailable + coachAvailable;
+    totalRequired = requiredSkippers + requiredRaceDirectors + requiredCoaches;
     isComplete = requiredSkippers > 0
       && skipperAvailable >= requiredSkippers
-      && raceDirectorAvailable >= requiredRaceDirectors;
+      && raceDirectorAvailable >= requiredRaceDirectors
+      && coachAvailable >= requiredCoaches;
   } else {
     // Old workflow: use event_boats
     availableCount = eventBoats.filter(eb => eb.response_status === 'yes').length;
@@ -153,7 +157,7 @@ export function EventCard({ event, eventTypeLabels }: EventCardProps) {
           {useInvitations ? (
             // New workflow: show invitation statuses
             invitations
-              .filter(inv => inv.role !== 'race_director')
+              .filter(inv => inv.role !== 'race_director' && inv.role !== 'coach')
               .map((invitation) => (
                 <div key={invitation.id} className="flex items-center space-x-2">
                   <span className="text-sm text-gray-700">

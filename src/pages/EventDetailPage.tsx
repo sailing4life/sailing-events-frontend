@@ -35,9 +35,10 @@ export function EventDetailPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [inviteRole, setInviteRole] = useState<'head_skipper' | 'skippers' | 'race_director' | null>(null);
+  const [inviteRole, setInviteRole] = useState<'head_skipper' | 'skippers' | 'race_director' | 'coach' | null>(null);
   const [selectedSkippers, setSelectedSkippers] = useState<number[]>([]);
   const [selectedRaceDirectors, setSelectedRaceDirectors] = useState<number[]>([]);
+  const [selectedCoaches, setSelectedCoaches] = useState<number[]>([]);
   const [selectedHeadSkipper, setSelectedHeadSkipper] = useState<number | null>(null);
   const [invitationFilter, setInvitationFilter] = useState<'all' | 'pending' | 'available' | 'confirmed'>('all');
   const [manualAssignModalOpen, setManualAssignModalOpen] = useState(false);
@@ -53,6 +54,7 @@ export function EventDetailPage() {
     event_type: '' as string,
     notes: '',
     required_race_directors: 0,
+    required_coaches: 0,
     selected_boats: [] as number[],
   });
 
@@ -297,10 +299,11 @@ export function EventDetailPage() {
     }
   };
 
-  const handleOpenInviteModal = (role: 'head_skipper' | 'skippers' | 'race_director') => {
+  const handleOpenInviteModal = (role: 'head_skipper' | 'skippers' | 'race_director' | 'coach') => {
     setInviteRole(role);
     setSelectedSkippers([]);
     setSelectedRaceDirectors([]);
+    setSelectedCoaches([]);
     setSelectedHeadSkipper(null);
     setShowInviteModal(true);
   };
@@ -315,6 +318,14 @@ export function EventDetailPage() {
 
   const toggleRaceDirectorSelection = (skipperId: number) => {
     setSelectedRaceDirectors(prev =>
+      prev.includes(skipperId)
+        ? prev.filter(id => id !== skipperId)
+        : [...prev, skipperId]
+    );
+  };
+
+  const toggleCoachSelection = (skipperId: number) => {
+    setSelectedCoaches(prev =>
       prev.includes(skipperId)
         ? prev.filter(id => id !== skipperId)
         : [...prev, skipperId]
@@ -344,6 +355,14 @@ export function EventDetailPage() {
       if (!confirm(`Wil je ${selectedRaceDirectors.length} extra wedstrijdleider(s) uitnodigen voor dit event?`)) {
         return;
       }
+    } else if (inviteRole === 'coach') {
+      if (selectedCoaches.length === 0) {
+        alert('Selecteer minimaal één coach om uit te nodigen');
+        return;
+      }
+      if (!confirm(`Wil je ${selectedCoaches.length} extra coach(es) uitnodigen voor dit event?`)) {
+        return;
+      }
     } else {
       if (selectedSkippers.length === 0) {
         alert('Selecteer minimaal één schipper om uit te nodigen');
@@ -361,13 +380,16 @@ export function EventDetailPage() {
           ? { head_skipper_id: selectedHeadSkipper || undefined }
           : inviteRole === 'race_director'
             ? { race_director_ids: selectedRaceDirectors }
-            : { skipper_ids: selectedSkippers };
+            : inviteRole === 'coach'
+              ? { coach_ids: selectedCoaches }
+              : { skipper_ids: selectedSkippers };
       const result = await eventsApi.sendInvitations(parseInt(id), payload);
       alert(result.message);
       setShowInviteModal(false);
       setInviteRole(null);
       setSelectedSkippers([]);
       setSelectedRaceDirectors([]);
+      setSelectedCoaches([]);
       setSelectedHeadSkipper(null);
       await loadEvent(); // Reload to show new invitations
     } catch (error: any) {
@@ -390,6 +412,7 @@ export function EventDetailPage() {
       event_type: event.event_type,
       notes: event.notes || '',
       required_race_directors: event.required_race_directors || 0,
+      required_coaches: event.required_coaches || 0,
       selected_boats: event.event_boats.map(eb => eb.boat.id),
     });
     setShowEditModal(true);
@@ -408,6 +431,7 @@ export function EventDetailPage() {
         event_type: editFormData.event_type,
         notes: editFormData.notes || undefined,
         required_race_directors: editFormData.required_race_directors,
+        required_coaches: editFormData.required_coaches,
         boat_ids: editFormData.selected_boats,
       });
       alert('Event succesvol bijgewerkt!');
@@ -452,8 +476,9 @@ export function EventDetailPage() {
 
   // Ensure invitations is an array (defensive check)
   const invitations = Array.isArray(event.invitations) ? event.invitations : [];
-  const statusInvitations = invitations.filter(inv => inv.role !== 'race_director');
+  const statusInvitations = invitations.filter(inv => inv.role !== 'race_director' && inv.role !== 'coach');
   const raceDirectorInvitations = invitations.filter(inv => inv.role === 'race_director');
+  const coachInvitations = invitations.filter(inv => inv.role === 'coach');
   const invitedSkipperIds = new Set(invitations.map(inv => inv.skipper.id));
 
   // Calculate invitation statistics
@@ -461,17 +486,22 @@ export function EventDetailPage() {
   const confirmedSkippers = statusInvitations.filter(inv => inv.status === 'confirmed').length;
   const availableRaceDirectors = raceDirectorInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
   const confirmedRaceDirectors = raceDirectorInvitations.filter(inv => inv.status === 'confirmed').length;
-  const availableCount = availableSkippers + availableRaceDirectors;
+  const availableCoaches = coachInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
+  const confirmedCoaches = coachInvitations.filter(inv => inv.status === 'confirmed').length;
+  const availableCount = availableSkippers + availableRaceDirectors + availableCoaches;
   const totalInvitations = invitations.length;
   const requiredSkippers = event.event_boats.length;
   const requiredRaceDirectors = event.required_race_directors || 0;
-  const totalRequired = requiredSkippers + requiredRaceDirectors;
+  const requiredCoaches = event.required_coaches || 0;
+  const totalRequired = requiredSkippers + requiredRaceDirectors + requiredCoaches;
   const allConfirmed = requiredSkippers > 0
     && confirmedSkippers >= requiredSkippers
-    && confirmedRaceDirectors >= requiredRaceDirectors;
+    && confirmedRaceDirectors >= requiredRaceDirectors
+    && confirmedCoaches >= requiredCoaches;
   const isComplete = requiredSkippers > 0
     && availableSkippers >= requiredSkippers
-    && availableRaceDirectors >= requiredRaceDirectors;
+    && availableRaceDirectors >= requiredRaceDirectors
+    && availableCoaches >= requiredCoaches;
 
   // Helper functions for manual assignment
   const unassignedBoats = event.event_boats.filter(eb => !eb.skipper);
@@ -604,6 +634,12 @@ export function EventDetailPage() {
                 <p className="text-sm text-gray-600 mb-1">Wedstrijdleiding nodig</p>
                 <p className="font-medium text-gray-900">{event.required_race_directors || 0}</p>
               </div>
+              {requiredCoaches > 0 && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Coaches nodig</p>
+                  <p className="font-medium text-gray-900">{requiredCoaches}</p>
+                </div>
+              )}
             </div>
             {event.notes && (
               <div className="mt-4 pt-4 border-t">
@@ -690,6 +726,11 @@ export function EventDetailPage() {
                   role: 'race_director' as const,
                   invitations: invitations.filter(inv => inv.role === 'race_director'),
                 },
+                ...(requiredCoaches > 0 || coachInvitations.length > 0 ? [{
+                  title: '🏅 Coaches',
+                  role: 'coach' as const,
+                  invitations: invitations.filter(inv => inv.role === 'coach'),
+                }] : []),
               ].map(group => (
                 <div key={group.role} className="border border-gray-200 rounded-lg p-4">
                   {(() => {
@@ -707,7 +748,7 @@ export function EventDetailPage() {
                             </p>
                           </div>
                           <button
-                            onClick={() => handleOpenInviteModal(group.role === 'race_director' ? 'race_director' : group.role === 'head_skipper' ? 'head_skipper' : 'skippers')}
+                            onClick={() => handleOpenInviteModal(group.role === 'race_director' ? 'race_director' : group.role === 'head_skipper' ? 'head_skipper' : group.role === 'coach' ? 'coach' : 'skippers')}
                             disabled={actionLoading || event.workflow_phase === 'finalized'}
                             className="btn-primary flex items-center gap-2 disabled:opacity-50"
                             title={event.workflow_phase === 'finalized' ? 'Kan geen nieuwe uitnodigingen versturen voor afgesloten events' : ''}
@@ -728,13 +769,15 @@ export function EventDetailPage() {
                               const statusInfo = getInvitationStatusBadge(invitation.status);
                               const isRaceDirector = invitation.role === 'race_director';
                               const isHeadSkipper = invitation.role === 'head_skipper';
+                              const isCoach = invitation.role === 'coach';
 
                               return (
                                 <div
                                   key={invitation.id}
                                   className={`border-2 rounded-lg p-4 ${
                                     isHeadSkipper ? 'border-blue-200 bg-blue-50' :
-                                    isRaceDirector ? 'border-purple-200 bg-purple-50' : 'border-gray-200'
+                                    isRaceDirector ? 'border-purple-200 bg-purple-50' :
+                                    isCoach ? 'border-green-200 bg-green-50' : 'border-gray-200'
                                   }`}
                                 >
                                   <div className="flex justify-between items-start mb-2">
@@ -762,7 +805,7 @@ export function EventDetailPage() {
                                 ✉️ Herinner
                               </button>
                             )}
-                            {invitation.status === 'available' && !isRaceDirector && event.workflow_phase === 'invitation' && (
+                            {invitation.status === 'available' && !isRaceDirector && !isCoach && event.workflow_phase === 'invitation' && (
                               <button
                                 onClick={() => handleConfirmInvitation(
                                   invitation.id,
@@ -774,7 +817,7 @@ export function EventDetailPage() {
                                 ✓ Bevestig
                               </button>
                             )}
-                            {invitation.status === 'confirmed' && !isRaceDirector && event.workflow_phase === 'finalized' && (
+                            {invitation.status === 'confirmed' && !isRaceDirector && !isCoach && event.workflow_phase === 'finalized' && (
                               <button
                                 onClick={() => {
                                   setInvitationToReplace(invitation);
@@ -1036,6 +1079,21 @@ export function EventDetailPage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                       />
                     </div>
+                    {editFormData.event_type === 'coaching' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Coaches nodig</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={editFormData.required_coaches}
+                          onChange={(e) => setEditFormData(prev => ({
+                            ...prev,
+                            required_coaches: Math.max(0, parseInt(e.target.value, 10) || 0)
+                          }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                        />
+                      </div>
+                    )}
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Notities</label>
                       <textarea
@@ -1114,7 +1172,9 @@ export function EventDetailPage() {
                     ? 'Hoofdschipper Toevoegen'
                     : inviteRole === 'race_director'
                       ? 'Wedstrijdleiding Toevoegen'
-                      : 'Extra Schippers Uitnodigen'}
+                      : inviteRole === 'coach'
+                        ? 'Coach Toevoegen'
+                        : 'Extra Schippers Uitnodigen'}
                 </h2>
                 <button
                   onClick={() => setShowInviteModal(false)}
@@ -1128,18 +1188,30 @@ export function EventDetailPage() {
 
               <div className="space-y-6">
                 {/* Selection Counter */}
-                <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+                <div className={`rounded-lg p-4 ${
+                  inviteRole === 'coach' ? 'bg-green-50 border border-green-200' :
+                  inviteRole === 'race_director' ? 'bg-purple-50 border border-purple-200' :
+                  'bg-cyan-50 border border-cyan-200'
+                }`}>
                   <p className="text-sm text-gray-700">
-                    <span className="font-semibold text-cyan-700">
+                    <span className={`font-semibold ${
+                      inviteRole === 'coach' ? 'text-green-700' :
+                      inviteRole === 'race_director' ? 'text-purple-700' :
+                      'text-cyan-700'
+                    }`}>
                       {inviteRole === 'head_skipper'
                         ? (selectedHeadSkipper ? 1 : 0)
                         : inviteRole === 'race_director'
                           ? selectedRaceDirectors.length
-                          : selectedSkippers.length}
+                          : inviteRole === 'coach'
+                            ? selectedCoaches.length
+                            : selectedSkippers.length}
                     </span>{' '}
                     {inviteRole === 'race_director'
                       ? 'wedstrijdleider(s)'
-                      : 'schipper(s)'} geselecteerd
+                      : inviteRole === 'coach'
+                        ? 'coach(es)'
+                        : 'schipper(s)'} geselecteerd
                   </p>
                 </div>
 
@@ -1150,17 +1222,24 @@ export function EventDetailPage() {
                       ? 'Selecteer Hoofdschipper'
                       : inviteRole === 'race_director'
                         ? 'Selecteer Wedstrijdleiding'
-                        : 'Selecteer Schippers'}
+                        : inviteRole === 'coach'
+                          ? 'Selecteer Coach'
+                          : 'Selecteer Schippers'}
                   </h3>
                   <p className="text-sm text-gray-600 mb-4">
                     {inviteRole === 'head_skipper'
                       ? 'Selecteer één hoofdschipper voor dit event'
-                      : 'Klik op een schipper om deze te selecteren voor uitnodiging'}
+                      : 'Klik op een persoon om deze te selecteren voor uitnodiging'}
                   </p>
                   <div className="space-y-2 max-h-96 overflow-y-auto">
                     {skippers
                       .filter(skipper => !invitedSkipperIds.has(skipper.id))
-                      .filter(skipper => event.event_type !== 'coaching' || skipper.is_coach)
+                      .filter(skipper => {
+                        if (inviteRole === 'race_director') return skipper.is_race_director;
+                        if (inviteRole === 'coach') return skipper.is_coach;
+                        if (event.event_type === 'coaching') return skipper.is_coach;
+                        return true;
+                      })
                       .map((skipper) => (
                         <div
                           key={skipper.id}
@@ -1169,6 +1248,8 @@ export function EventDetailPage() {
                               selectHeadSkipper(skipper.id);
                             } else if (inviteRole === 'race_director') {
                               toggleRaceDirectorSelection(skipper.id);
+                            } else if (inviteRole === 'coach') {
+                              toggleCoachSelection(skipper.id);
                             } else {
                               toggleSkipperSelection(skipper.id);
                             }
@@ -1182,9 +1263,13 @@ export function EventDetailPage() {
                                 ? selectedRaceDirectors.includes(skipper.id)
                                   ? 'border-purple-600 bg-purple-50'
                                   : 'border-gray-200 hover:border-gray-300'
-                                : selectedSkippers.includes(skipper.id)
-                                  ? 'border-cyan-600 bg-cyan-50'
-                                  : 'border-gray-200 hover:border-gray-300'
+                                : inviteRole === 'coach'
+                                  ? selectedCoaches.includes(skipper.id)
+                                    ? 'border-green-600 bg-green-50'
+                                    : 'border-gray-200 hover:border-gray-300'
+                                  : selectedSkippers.includes(skipper.id)
+                                    ? 'border-cyan-600 bg-cyan-50'
+                                    : 'border-gray-200 hover:border-gray-300'
                           }`}
                         >
                           <div className="flex justify-between items-start">
@@ -1212,7 +1297,12 @@ export function EventDetailPage() {
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                               </svg>
                             )}
-                            {inviteRole !== 'head_skipper' && inviteRole !== 'race_director' && selectedSkippers.includes(skipper.id) && (
+                            {inviteRole === 'coach' && selectedCoaches.includes(skipper.id) && (
+                              <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                            {inviteRole !== 'head_skipper' && inviteRole !== 'race_director' && inviteRole !== 'coach' && selectedSkippers.includes(skipper.id) && (
                               <svg className="w-5 h-5 text-cyan-600" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                               </svg>
@@ -1244,9 +1334,17 @@ export function EventDetailPage() {
                         ? !selectedHeadSkipper
                         : inviteRole === 'race_director'
                           ? selectedRaceDirectors.length === 0
-                          : selectedSkippers.length === 0)
+                          : inviteRole === 'coach'
+                            ? selectedCoaches.length === 0
+                            : selectedSkippers.length === 0)
                     }
-                    className="flex-1 px-4 py-2 bg-cyan-600 text-white rounded-lg font-medium hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className={`flex-1 px-4 py-2 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                      inviteRole === 'coach'
+                        ? 'bg-green-600 hover:bg-green-700'
+                        : inviteRole === 'race_director'
+                          ? 'bg-purple-600 hover:bg-purple-700'
+                          : 'bg-cyan-600 hover:bg-cyan-700'
+                    }`}
                   >
                     {actionLoading
                       ? 'Bezig...'
@@ -1254,7 +1352,9 @@ export function EventDetailPage() {
                         ? 'Hoofdschipper Uitnodigen'
                         : inviteRole === 'race_director'
                           ? `${selectedRaceDirectors.length} Uitnodiging${selectedRaceDirectors.length === 1 ? '' : 'en'} Versturen`
-                          : `${selectedSkippers.length} Uitnodiging${selectedSkippers.length === 1 ? '' : 'en'} Versturen`}
+                          : inviteRole === 'coach'
+                            ? `${selectedCoaches.length} Uitnodiging${selectedCoaches.length === 1 ? '' : 'en'} Versturen`
+                            : `${selectedSkippers.length} Uitnodiging${selectedSkippers.length === 1 ? '' : 'en'} Versturen`}
                   </button>
                 </div>
               </div>

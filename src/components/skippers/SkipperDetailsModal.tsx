@@ -43,6 +43,8 @@ export function SkipperDetailsModal({ isOpen, skipper, onClose }: SkipperDetails
         return 'Hoofdschipper';
       case 'race_director':
         return 'Wedstrijdleider';
+      case 'coach':
+        return 'Coach';
       default:
         return role;
     }

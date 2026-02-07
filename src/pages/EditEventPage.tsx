@@ -11,6 +11,7 @@ interface EventFormData {
   event_type: string;
   notes: string;
   required_race_directors: number;
+  required_coaches: number;
 }
 
 export function EditEventPage() {
@@ -28,6 +29,7 @@ export function EditEventPage() {
     event_type: '',
     notes: '',
     required_race_directors: 0,
+    required_coaches: 0,
   });
 
   useEffect(() => {
@@ -51,6 +53,7 @@ export function EditEventPage() {
         event_type: data.event_type,
         notes: data.notes || '',
         required_race_directors: data.required_race_directors || 0,
+        required_coaches: data.required_coaches || 0,
       });
     } catch (error) {
       console.error('Error loading event:', error);
@@ -85,6 +88,7 @@ export function EditEventPage() {
         event_type: formData.event_type,
         notes: formData.notes || undefined,
         required_race_directors: formData.required_race_directors,
+        required_coaches: formData.required_coaches,
       });
 
       alert('Event succesvol bijgewerkt!');
@@ -229,6 +233,24 @@ export function EditEventPage() {
               className="input-field"
             />
           </div>
+
+          {formData.event_type === 'coaching' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Coaches nodig
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={formData.required_coaches}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  required_coaches: Math.max(0, parseInt(e.target.value, 10) || 0)
+                })}
+                className="input-field"
+              />
+            </div>
+          )}
 
           {/* Notes */}
           <div>
