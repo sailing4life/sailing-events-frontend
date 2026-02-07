@@ -4,7 +4,6 @@ import type { Event } from '../../types';
 
 interface EventCalendarViewProps {
   events: Event[];
-  eventTypeLabels: Record<string, string>;
 }
 
 const getDurationLabel = (duration: string) => {
@@ -53,7 +52,7 @@ const statusColors: Record<string, { bg: string; border: string; text: string }>
   pending: { bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-800' },
 };
 
-export function EventCalendarView({ events, eventTypeLabels }: EventCalendarViewProps) {
+export function EventCalendarView({ events }: EventCalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
