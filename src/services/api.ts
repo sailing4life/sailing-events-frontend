@@ -385,6 +385,12 @@ export const statisticsApi = {
   getOverview: async (): Promise<{
     year: number;
     total_events: number;
+    boat_days: number;
+    boat_days_by_event_type: Array<{
+      event_type: string;
+      label?: string;
+      boat_days: number;
+    }>;
     boat_usage: Array<{
       id: number;
       name: string;

@@ -4,6 +4,12 @@ import { statisticsApi } from '../services/api';
 interface Statistics {
   year: number;
   total_events: number;
+  boat_days: number;
+  boat_days_by_event_type: Array<{
+    event_type: string;
+    label?: string;
+    boat_days: number;
+  }>;
   boat_usage: Array<{
     id: number;
     name: string;
@@ -95,9 +101,9 @@ export function StatisticsPage() {
           <p className="text-sm opacity-75 mt-1">Totaal in {statistics.year}</p>
         </div>
         <div className="card bg-gradient-to-br from-green-500 to-green-700 text-white">
-          <h3 className="text-sm font-medium opacity-90 mb-2">Actieve Boten</h3>
-          <p className="text-4xl font-bold">{statistics.boat_usage.length}</p>
-          <p className="text-sm opacity-75 mt-1">Gebruikt dit jaar</p>
+          <h3 className="text-sm font-medium opacity-90 mb-2">Boot Dagen</h3>
+          <p className="text-4xl font-bold">{formatCount(statistics.boat_days)}</p>
+          <p className="text-sm opacity-75 mt-1">Totaal in {statistics.year}</p>
         </div>
         <div className="card bg-gradient-to-br from-purple-500 to-purple-700 text-white">
           <h3 className="text-sm font-medium opacity-90 mb-2">Actieve Schippers</h3>
@@ -133,6 +139,40 @@ export function StatisticsPage() {
           </div>
         ) : (
           <p className="text-gray-500 text-center py-8">Nog geen boten gebruikt dit jaar</p>
+        )}
+      </div>
+
+      {/* Boat Days per Event Type */}
+      <div className="card mb-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Boot Dagen per Event Type</h2>
+        {statistics.boat_days_by_event_type.length > 0 ? (
+          <div className="space-y-4">
+            {statistics.boat_days_by_event_type.map((item) => (
+              <div key={item.event_type}>
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <span className="font-medium text-gray-900">
+                      {item.label || formatEventType(item.event_type)}
+                    </span>
+                  </div>
+                  <span className="text-sm font-semibold text-gray-900">
+                    {formatCount(item.boat_days)} dagen
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="h-3 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${(item.boat_days / statistics.boat_days) * 100}%`,
+                      backgroundColor: getEventTypeColor(item.event_type)
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 text-center py-8">Nog geen boot dagen dit jaar</p>
         )}
       </div>
 
