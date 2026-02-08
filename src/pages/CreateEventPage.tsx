@@ -462,7 +462,7 @@ export function CreateEventPage() {
                   .filter(s => !formData.selected_skippers.includes(s.id))
                   .filter(s => !formData.selected_race_directors.includes(s.id))
                   .filter(s => !formData.selected_coaches.includes(s.id))
-                  .filter(s => formData.event_type !== 'coaching' || s.is_coach)
+                  .filter(s => formData.event_type === 'coaching' ? s.is_coach : s.is_skipper)
                   .map((skipper) => (
                     <div
                       key={skipper.id}
@@ -511,7 +511,7 @@ export function CreateEventPage() {
                   .filter(s => s.id !== formData.selected_head_skipper)
                   .filter(s => !formData.selected_race_directors.includes(s.id))
                   .filter(s => !formData.selected_coaches.includes(s.id))
-                  .filter(s => formData.event_type !== 'coaching' || s.is_coach)
+                  .filter(s => formData.event_type === 'coaching' ? s.is_coach : s.is_skipper)
                   .map((skipper) => (
                     <div
                       key={skipper.id}

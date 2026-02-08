@@ -36,6 +36,7 @@ export interface Skipper {
   full_day_rate: number;
   notes?: string;
   is_active: boolean;
+  is_skipper: boolean;
   is_coach: boolean;
   is_race_director: boolean;
 }

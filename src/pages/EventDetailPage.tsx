@@ -1238,7 +1238,7 @@ export function EventDetailPage() {
                         if (inviteRole === 'race_director') return skipper.is_race_director;
                         if (inviteRole === 'coach') return skipper.is_coach;
                         if (event.event_type === 'coaching') return skipper.is_coach;
-                        return true;
+                        return skipper.is_skipper;
                       })
                       .map((skipper) => (
                         <div
