@@ -52,7 +52,7 @@ export function LoginPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 className="input-field"
-                placeholder="admin"
+                placeholder="Gebruikersnaam"
                 disabled={isLoading}
               />
             </div>
@@ -93,10 +93,7 @@ export function LoginPage() {
           </form>
 
           <div className="mt-6 text-center text-sm text-gray-500">
-            <p>Standaard inloggegevens:</p>
-            <p className="font-mono mt-1">
-              <span className="font-semibold">admin</span> / <span className="font-semibold">admin123</span>
-            </p>
+            <p>Team Heiner Event Manager</p>
           </div>
         </div>
       </div>

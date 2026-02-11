@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { skippersApi, excelApi } from '../services/api';
 import type { Skipper } from '../types';
 import { SkipperDetailsModal } from '../components/skippers/SkipperDetailsModal';
+import { toast } from 'sonner';
 
 export function SkippersPage() {
   const [skippers, setSkippers] = useState<Skipper[]>([]);
@@ -13,6 +14,8 @@ export function SkippersPage() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [editingSkipper, setEditingSkipper] = useState<Skipper | null>(null);
   const [selectedSkipper, setSelectedSkipper] = useState<Skipper | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'skipper' | 'coach' | 'race_director'>('all');
   const [createFormData, setCreateFormData] = useState({
     first_name: '',
     last_name: '',
@@ -62,12 +65,11 @@ export function SkippersPage() {
     setUploading(true);
     try {
       const result = await excelApi.import(file);
-      alert(result.message);
-      // Reload data
+      toast.success(result.message);
       await loadSkippers();
     } catch (error) {
       console.error('Error uploading file:', error);
-      alert('Error uploading Excel file');
+      toast.error('Fout bij uploaden van Excel bestand');
     } finally {
       setUploading(false);
     }
@@ -106,12 +108,12 @@ export function SkippersPage() {
 
     try {
       await skippersApi.update(editingSkipper.id, editFormData);
-      alert('Schipper succesvol bijgewerkt!');
+      toast.success('Schipper succesvol bijgewerkt!');
       setShowEditModal(false);
       await loadSkippers();
     } catch (error) {
       console.error('Error updating skipper:', error);
-      alert('Fout bij bijwerken van schipper');
+      toast.error('Fout bij bijwerken van schipper');
     }
   };
 
@@ -119,7 +121,7 @@ export function SkippersPage() {
     setCreating(true);
     try {
       await skippersApi.create(createFormData);
-      alert('Schipper succesvol toegevoegd!');
+      toast.success('Schipper succesvol toegevoegd!');
       setShowCreateModal(false);
       setCreateFormData({
         first_name: '',
@@ -137,7 +139,7 @@ export function SkippersPage() {
       await loadSkippers();
     } catch (error) {
       console.error('Error creating skipper:', error);
-      alert('Fout bij toevoegen van schipper');
+      toast.error('Fout bij toevoegen van schipper');
     } finally {
       setCreating(false);
     }
@@ -180,6 +182,42 @@ export function SkippersPage() {
         </div>
       </div>
 
+      {/* Search and Filter */}
+      <div className="mb-6 flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Zoek op naam, email of telefoon..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="input pl-10 w-full"
+          />
+        </div>
+        <div className="flex gap-2">
+          {([
+            { key: 'all', label: 'Alle' },
+            { key: 'skipper', label: 'Schippers' },
+            { key: 'coach', label: 'Coaches' },
+            { key: 'race_director', label: 'Wedstrijdleiders' },
+          ] as const).map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setRoleFilter(key)}
+              className={`px-3 py-2 text-sm rounded-lg font-medium transition-colors ${
+                roleFilter === key
+                  ? 'bg-cyan-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {skippers.length === 0 ? (
         <div className="text-center py-12 card">
           <p className="text-gray-600 mb-4">Nog geen schippers in de database</p>
@@ -187,7 +225,20 @@ export function SkippersPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {skippers.map((skipper) => (
+          {skippers
+            .filter((s) => {
+              const query = searchQuery.toLowerCase();
+              const matchesSearch = !query ||
+                `${s.first_name} ${s.last_name}`.toLowerCase().includes(query) ||
+                s.email.toLowerCase().includes(query) ||
+                s.phone.includes(query);
+              const matchesRole = roleFilter === 'all' ||
+                (roleFilter === 'skipper' && s.is_skipper) ||
+                (roleFilter === 'coach' && s.is_coach) ||
+                (roleFilter === 'race_director' && s.is_race_director);
+              return matchesSearch && matchesRole;
+            })
+            .map((skipper) => (
           <div key={skipper.id} className="card">
             <div className="flex justify-between items-start mb-4">
               <div>

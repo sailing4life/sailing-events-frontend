@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { Skipper, SkipperEventHistory, SkipperOpenEvent } from '../../types';
 import { skippersApi, eventsApi } from '../../services/api';
+import { ConfirmDialog } from '../common/ConfirmDialog';
+import { toast } from 'sonner';
 
 interface SkipperDetailsModalProps {
   isOpen: boolean;
@@ -13,6 +15,7 @@ export function SkipperDetailsModal({ isOpen, skipper, onClose }: SkipperDetails
   const [openEvents, setOpenEvents] = useState<SkipperOpenEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [assigningEventId, setAssigningEventId] = useState<number | null>(null);
+  const [confirmAssignEventId, setConfirmAssignEventId] = useState<number | null>(null);
 
   useEffect(() => {
     if (isOpen && skipper) {
@@ -84,24 +87,25 @@ export function SkipperDetailsModal({ isOpen, skipper, onClose }: SkipperDetails
     }
   };
 
-  const handleAssign = async (eventId: number) => {
-    if (!skipper) return;
+  const handleAssign = (eventId: number) => {
+    setConfirmAssignEventId(eventId);
+  };
 
-    if (!confirm(`Wil je ${skipper.first_name} ${skipper.last_name} direct bevestigen voor dit event?`)) {
-      return;
-    }
+  const executeAssign = async () => {
+    if (!skipper || confirmAssignEventId === null) return;
 
-    setAssigningEventId(eventId);
+    setConfirmAssignEventId(null);
+    setAssigningEventId(confirmAssignEventId);
     try {
-      await eventsApi.confirmDirect(eventId, [{
+      await eventsApi.confirmDirect(confirmAssignEventId, [{
         skipper_id: skipper.id,
         role: 'skipper',
       }]);
       await loadDetails();
-      alert('Schipper direct bevestigd!');
+      toast.success('Schipper direct bevestigd!');
     } catch (error) {
       console.error('Error assigning skipper:', error);
-      alert('Fout bij het bevestigen van schipper');
+      toast.error('Fout bij het bevestigen van schipper');
     } finally {
       setAssigningEventId(null);
     }
@@ -186,6 +190,16 @@ export function SkipperDetailsModal({ isOpen, skipper, onClose }: SkipperDetails
             </>
           )}
         </div>
+
+        <ConfirmDialog
+          isOpen={confirmAssignEventId !== null}
+          title="Schipper bevestigen"
+          message={skipper ? `Wil je ${skipper.first_name} ${skipper.last_name} direct bevestigen voor dit event?` : ''}
+          confirmLabel="Bevestigen"
+          variant="info"
+          onConfirm={executeAssign}
+          onCancel={() => setConfirmAssignEventId(null)}
+        />
       </div>
     </div>
   );

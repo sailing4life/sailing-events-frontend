@@ -5,6 +5,8 @@ import type { Event, InvitationStatus, Boat, Skipper, EventTypeConfig, Invitatio
 import { ManualAssignmentModal } from '../components/events/ManualAssignmentModal';
 import { DirectConfirmModal } from '../components/events/DirectConfirmModal';
 import { ReplaceSkipperModal } from '../components/events/ReplaceSkipperModal';
+import { ConfirmDialog } from '../components/common/ConfirmDialog';
+import { toast } from 'sonner';
 
 const getInvitationStatusBadge = (status: InvitationStatus) => {
   const badges = {
@@ -46,6 +48,13 @@ export function EventDetailPage() {
   const [directConfirmModalOpen, setDirectConfirmModalOpen] = useState(false);
   const [replaceModalOpen, setReplaceModalOpen] = useState(false);
   const [invitationToReplace, setInvitationToReplace] = useState<Invitation | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{
+    title: string;
+    message: string;
+    variant?: 'danger' | 'warning' | 'info';
+    confirmLabel?: string;
+    onConfirm: () => void;
+  } | null>(null);
   const [editFormData, setEditFormData] = useState({
     event_name: '',
     company_name: '',
@@ -107,117 +116,142 @@ export function EventDetailPage() {
   };
 
 
-  const handleCancelEvent = async () => {
+  const handleCancelEvent = () => {
     if (!event || !id) return;
 
-    if (!confirm(`Weet je zeker dat je het event "${event.event_name}" wilt annuleren? Deze actie kan niet ongedaan gemaakt worden.`)) {
-      return;
-    }
-
-    setActionLoading(true);
-    try {
-      const result = await eventsApi.delete(parseInt(id));
-      const emails = result.cancellation_emails;
-      const emailSummary = emails
-        ? `\nAnnuleringsmails: ${emails.sent} verstuurd, ${emails.failed} mislukt`
-        : '';
-      alert(`${result.message}${emailSummary}`);
-      navigate('/');
-    } catch (error) {
-      console.error('Error canceling event:', error);
-      alert('Fout bij het annuleren van het event');
-      setActionLoading(false);
-    }
+    setConfirmAction({
+      title: 'Event annuleren',
+      message: `Weet je zeker dat je het event "${event.event_name}" wilt annuleren? Deze actie kan niet ongedaan gemaakt worden.`,
+      variant: 'danger',
+      confirmLabel: 'Annuleren',
+      onConfirm: async () => {
+        setConfirmAction(null);
+        setActionLoading(true);
+        try {
+          const result = await eventsApi.delete(parseInt(id));
+          const emails = result.cancellation_emails;
+          const emailSummary = emails
+            ? ` (${emails.sent} mails verstuurd, ${emails.failed} mislukt)`
+            : '';
+          toast.success(`${result.message}${emailSummary}`);
+          navigate('/');
+        } catch (error) {
+          console.error('Error canceling event:', error);
+          toast.error('Fout bij het annuleren van het event');
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
-  const handleCloseEvent = async () => {
+  const handleCloseEvent = () => {
     if (!event || !id) return;
 
-    if (!confirm(`Wil je het event "${event.event_name}" afsluiten? Beschikbare schippers die niet gekozen zijn krijgen een bericht.`)) {
-      return;
-    }
-
-    setActionLoading(true);
-    try {
-      const result = await eventsApi.close(parseInt(id));
-      const emails = result.emails;
-      const emailSummary = emails
-        ? `\nMails: ${emails.sent} verstuurd, ${emails.failed} mislukt`
-        : '';
-      alert(`${result.message}${emailSummary}`);
-      await loadEvent();
-    } catch (error: any) {
-      console.error('Error closing event:', error);
-      const errorMessage = error.response?.data?.detail || 'Fout bij het afsluiten van het event';
-      alert(errorMessage);
-    } finally {
-      setActionLoading(false);
-    }
+    setConfirmAction({
+      title: 'Event afsluiten',
+      message: `Wil je het event "${event.event_name}" afsluiten? Beschikbare schippers die niet gekozen zijn krijgen een bericht.`,
+      variant: 'warning',
+      confirmLabel: 'Afsluiten',
+      onConfirm: async () => {
+        setConfirmAction(null);
+        setActionLoading(true);
+        try {
+          const result = await eventsApi.close(parseInt(id));
+          const emails = result.emails;
+          const emailSummary = emails
+            ? ` (${emails.sent} mails verstuurd, ${emails.failed} mislukt)`
+            : '';
+          toast.success(`${result.message}${emailSummary}`);
+          await loadEvent();
+        } catch (error: any) {
+          console.error('Error closing event:', error);
+          const errorMessage = error.response?.data?.detail || 'Fout bij het afsluiten van het event';
+          toast.error(errorMessage);
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
-  const handleConfirmInvitation = async (invitationId: number, skipperName: string) => {
-    if (!confirm(`Wil je ${skipperName} definitief bevestigen voor dit event?`)) {
-      return;
-    }
-
-    setActionLoading(true);
-    try {
-      const result = await invitationsApi.confirm(invitationId);
-      alert(result.message);
-      await loadEvent(); // Reload to show updated status
-    } catch (error: any) {
-      console.error('Error confirming invitation:', error);
-      const errorMessage = error.response?.data?.detail || 'Fout bij het bevestigen';
-      alert(errorMessage);
-    } finally {
-      setActionLoading(false);
-    }
+  const handleConfirmInvitation = (invitationId: number, skipperName: string) => {
+    setConfirmAction({
+      title: 'Schipper bevestigen',
+      message: `Wil je ${skipperName} definitief bevestigen voor dit event?`,
+      variant: 'info',
+      confirmLabel: 'Bevestigen',
+      onConfirm: async () => {
+        setConfirmAction(null);
+        setActionLoading(true);
+        try {
+          const result = await invitationsApi.confirm(invitationId);
+          toast.success(result.message);
+          await loadEvent();
+        } catch (error: any) {
+          console.error('Error confirming invitation:', error);
+          const errorMessage = error.response?.data?.detail || 'Fout bij het bevestigen';
+          toast.error(errorMessage);
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
-  const handleSendSingleReminder = async (invitationId: number, skipperName: string) => {
-    if (!confirm(`Wil je een herinnering sturen naar ${skipperName}?`)) {
-      return;
-    }
-
-    setActionLoading(true);
-    try {
-      const result = await invitationsApi.sendReminder(invitationId);
-      alert(result.message);
-      await loadEvent();
-    } catch (error: any) {
-      console.error('Error sending reminder:', error);
-      const errorMessage = error.response?.data?.detail || 'Fout bij het versturen van herinnering';
-      alert(errorMessage);
-    } finally {
-      setActionLoading(false);
-    }
+  const handleSendSingleReminder = (invitationId: number, skipperName: string) => {
+    setConfirmAction({
+      title: 'Herinnering versturen',
+      message: `Wil je een herinnering sturen naar ${skipperName}?`,
+      variant: 'info',
+      confirmLabel: 'Versturen',
+      onConfirm: async () => {
+        setConfirmAction(null);
+        setActionLoading(true);
+        try {
+          const result = await invitationsApi.sendReminder(invitationId);
+          toast.success(result.message);
+          await loadEvent();
+        } catch (error: any) {
+          console.error('Error sending reminder:', error);
+          const errorMessage = error.response?.data?.detail || 'Fout bij het versturen van herinnering';
+          toast.error(errorMessage);
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
-  const handleSendReminder = async () => {
+  const handleSendReminder = () => {
     if (!event || !id) return;
 
     const invitations = Array.isArray(event.invitations) ? event.invitations : [];
     const pendingCount = invitations.filter(inv => inv.status === 'pending').length;
     if (pendingCount === 0) {
-      alert('Geen openstaande uitnodigingen - alle schippers hebben al gereageerd');
+      toast.info('Geen openstaande uitnodigingen - alle schippers hebben al gereageerd');
       return;
     }
 
-    if (!confirm(`Wil je een herinnering versturen naar ${pendingCount} schipper(s) die nog niet hebben gereageerd?`)) {
-      return;
-    }
-
-    setActionLoading(true);
-    try {
-      const result = await eventsApi.sendInvitationReminder(parseInt(id));
-      alert(result.message);
-      await loadEvent(); // Reload to update timestamps
-    } catch (error: any) {
-      console.error('Error sending reminder:', error);
-      const errorMessage = error.response?.data?.detail || 'Fout bij het versturen van herinneringen';
-      alert(errorMessage);
-    } finally {
-      setActionLoading(false);
-    }
+    setConfirmAction({
+      title: 'Herinneringen versturen',
+      message: `Wil je een herinnering versturen naar ${pendingCount} schipper(s) die nog niet hebben gereageerd?`,
+      variant: 'info',
+      confirmLabel: 'Versturen',
+      onConfirm: async () => {
+        setConfirmAction(null);
+        setActionLoading(true);
+        try {
+          const result = await eventsApi.sendInvitationReminder(parseInt(id));
+          toast.success(result.message);
+          await loadEvent();
+        } catch (error: any) {
+          console.error('Error sending reminder:', error);
+          const errorMessage = error.response?.data?.detail || 'Fout bij het versturen van herinneringen';
+          toast.error(errorMessage);
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
   const handleManualAssignment = async (skipperId: number, boatId: number) => {
@@ -237,11 +271,11 @@ export function EventDetailPage() {
       setManualAssignModalOpen(false);
       setSelectedInvitation(null);
 
-      alert('Schipper succesvol toegewezen!');
+      toast.success('Schipper succesvol toegewezen!');
     } catch (error: any) {
       console.error('Error assigning skipper:', error);
       const errorMessage = error.response?.data?.detail || 'Fout bij toewijzen';
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setActionLoading(false);
     }
@@ -256,9 +290,9 @@ export function EventDetailPage() {
 
       // Show success message with details
       const emailInfo = result.emails_failed > 0
-        ? `\n${result.emails_sent} email(s) verstuurd, ${result.emails_failed} mislukt`
+        ? ` (${result.emails_sent} email(s) verstuurd, ${result.emails_failed} mislukt)`
         : '';
-      alert(`${result.message}${emailInfo}`);
+      toast.success(`${result.message}${emailInfo}`);
 
       // Reload event data to show updated invitations
       await loadEvent();
@@ -267,7 +301,7 @@ export function EventDetailPage() {
     } catch (error: any) {
       console.error('Error confirming skippers:', error);
       const errorMessage = error.response?.data?.detail || 'Fout bij het bevestigen van schippers';
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setActionLoading(false);
     }
@@ -287,14 +321,14 @@ export function EventDetailPage() {
         ? 'Emails verstuurd naar beide schippers'
         : 'Let op: niet alle emails zijn verstuurd';
 
-      alert(`${result.message}\n${emailStatus}`);
+      toast.success(`${result.message} - ${emailStatus}`);
 
       // Reload event data
       await loadEvent();
     } catch (error: any) {
       console.error('Error replacing skipper:', error);
       const errorMessage = error.response?.data?.detail || 'Fout bij het vervangen van schipper';
-      alert(errorMessage);
+      toast.error(errorMessage);
       throw error;
     }
   };
@@ -336,69 +370,71 @@ export function EventDetailPage() {
     setSelectedHeadSkipper(prev => (prev === skipperId ? null : skipperId));
   };
 
-  const handleSendAdditionalInvitations = async () => {
+  const handleSendAdditionalInvitations = () => {
     if (!event || !id) return;
 
+    let confirmMessage = '';
     if (inviteRole === 'head_skipper') {
       if (!selectedHeadSkipper) {
-        alert('Selecteer een hoofdschipper om uit te nodigen');
+        toast.info('Selecteer een hoofdschipper om uit te nodigen');
         return;
       }
-      if (!confirm('Wil je een hoofdschipper uitnodigen voor dit event?')) {
-        return;
-      }
+      confirmMessage = 'Wil je een hoofdschipper uitnodigen voor dit event?';
     } else if (inviteRole === 'race_director') {
       if (selectedRaceDirectors.length === 0) {
-        alert('Selecteer minimaal één wedstrijdleider om uit te nodigen');
+        toast.info('Selecteer minimaal één wedstrijdleider om uit te nodigen');
         return;
       }
-      if (!confirm(`Wil je ${selectedRaceDirectors.length} extra wedstrijdleider(s) uitnodigen voor dit event?`)) {
-        return;
-      }
+      confirmMessage = `Wil je ${selectedRaceDirectors.length} extra wedstrijdleider(s) uitnodigen voor dit event?`;
     } else if (inviteRole === 'coach') {
       if (selectedCoaches.length === 0) {
-        alert('Selecteer minimaal één coach om uit te nodigen');
+        toast.info('Selecteer minimaal één coach om uit te nodigen');
         return;
       }
-      if (!confirm(`Wil je ${selectedCoaches.length} extra coach(es) uitnodigen voor dit event?`)) {
-        return;
-      }
+      confirmMessage = `Wil je ${selectedCoaches.length} extra coach(es) uitnodigen voor dit event?`;
     } else {
       if (selectedSkippers.length === 0) {
-        alert('Selecteer minimaal één schipper om uit te nodigen');
+        toast.info('Selecteer minimaal één schipper om uit te nodigen');
         return;
       }
-      if (!confirm(`Wil je ${selectedSkippers.length} extra schipper(s) uitnodigen voor dit event?`)) {
-        return;
-      }
+      confirmMessage = `Wil je ${selectedSkippers.length} extra schipper(s) uitnodigen voor dit event?`;
     }
 
-    setActionLoading(true);
-    try {
-      const payload =
-        inviteRole === 'head_skipper'
-          ? { head_skipper_id: selectedHeadSkipper || undefined }
-          : inviteRole === 'race_director'
-            ? { race_director_ids: selectedRaceDirectors }
-            : inviteRole === 'coach'
-              ? { coach_ids: selectedCoaches }
-              : { skipper_ids: selectedSkippers };
-      const result = await eventsApi.sendInvitations(parseInt(id), payload);
-      alert(result.message);
-      setShowInviteModal(false);
-      setInviteRole(null);
-      setSelectedSkippers([]);
-      setSelectedRaceDirectors([]);
-      setSelectedCoaches([]);
-      setSelectedHeadSkipper(null);
-      await loadEvent(); // Reload to show new invitations
-    } catch (error: any) {
-      console.error('Error sending invitations:', error);
-      const errorMessage = error.response?.data?.detail || 'Fout bij het versturen van uitnodigingen';
-      alert(errorMessage);
-    } finally {
-      setActionLoading(false);
-    }
+    setConfirmAction({
+      title: 'Uitnodigingen versturen',
+      message: confirmMessage,
+      variant: 'info',
+      confirmLabel: 'Versturen',
+      onConfirm: async () => {
+        setConfirmAction(null);
+        setActionLoading(true);
+        try {
+          const payload =
+            inviteRole === 'head_skipper'
+              ? { head_skipper_id: selectedHeadSkipper || undefined }
+              : inviteRole === 'race_director'
+                ? { race_director_ids: selectedRaceDirectors }
+                : inviteRole === 'coach'
+                  ? { coach_ids: selectedCoaches }
+                  : { skipper_ids: selectedSkippers };
+          const result = await eventsApi.sendInvitations(parseInt(id), payload);
+          toast.success(result.message);
+          setShowInviteModal(false);
+          setInviteRole(null);
+          setSelectedSkippers([]);
+          setSelectedRaceDirectors([]);
+          setSelectedCoaches([]);
+          setSelectedHeadSkipper(null);
+          await loadEvent();
+        } catch (error: any) {
+          console.error('Error sending invitations:', error);
+          const errorMessage = error.response?.data?.detail || 'Fout bij het versturen van uitnodigingen';
+          toast.error(errorMessage);
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
   const handleOpenEditModal = () => {
@@ -434,13 +470,13 @@ export function EventDetailPage() {
         required_coaches: editFormData.required_coaches,
         boat_ids: editFormData.selected_boats,
       });
-      alert('Event succesvol bijgewerkt!');
+      toast.success('Event succesvol bijgewerkt!');
       setShowEditModal(false);
-      await loadEvent(); // Reload to show updated event
+      await loadEvent();
     } catch (error: any) {
       console.error('Error updating event:', error);
       const errorMessage = error.response?.data?.detail || 'Fout bij het bijwerken van het event';
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setActionLoading(false);
     }
@@ -1406,6 +1442,17 @@ export function EventDetailPage() {
         invitation={invitationToReplace}
         availableSkippers={skippers.filter(s => !invitedSkipperIds.has(s.id))}
         onReplace={handleReplaceSkipper}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!confirmAction}
+        title={confirmAction?.title || ''}
+        message={confirmAction?.message || ''}
+        confirmLabel={confirmAction?.confirmLabel}
+        variant={confirmAction?.variant}
+        onConfirm={() => confirmAction?.onConfirm()}
+        onCancel={() => setConfirmAction(null)}
       />
     </div>
   );

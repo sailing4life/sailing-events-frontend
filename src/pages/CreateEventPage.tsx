@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { boatsApi, skippersApi, eventsApi, eventTypesApi } from '../services/api';
 import type { Boat, Skipper, EventTypeConfig } from '../types';
+import { toast } from 'sonner';
 
 interface EventFormData {
   event_name: string;
@@ -74,7 +75,7 @@ export function CreateEventPage() {
       }
     } catch (error) {
       console.error('Error loading data:', error);
-      alert('Fout bij het laden van boten, schippers of event types');
+      toast.error('Fout bij het laden van boten, schippers of event types');
     } finally {
       setLoading(false);
     }
@@ -116,17 +117,12 @@ export function CreateEventPage() {
           : undefined,
       });
 
-      alert(
-        `Event succesvol aangemaakt!\n\n${invitationResult.message}\n` +
-        `Schippers: ${invitationResult.skippers}\n` +
-        `Wedstrijdleiding: ${invitationResult.race_directors}` +
-        (invitationResult.coaches ? `\nCoaches: ${invitationResult.coaches}` : '')
-      );
+      toast.success(`Event succesvol aangemaakt! ${invitationResult.message}`);
       navigate('/');
     } catch (error: any) {
       console.error('Error creating event:', error);
       const errorMessage = error.response?.data?.detail || 'Fout bij het aanmaken van het event';
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -150,7 +146,7 @@ export function CreateEventPage() {
       setNewTypeLabel('');
     } catch (error) {
       console.error('Error creating event type:', error);
-      alert('Fout bij toevoegen van event type');
+      toast.error('Fout bij toevoegen van event type');
     } finally {
       setCreatingType(false);
     }

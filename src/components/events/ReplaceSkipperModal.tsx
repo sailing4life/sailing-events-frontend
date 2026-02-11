@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Invitation, Skipper } from '../../types';
+import { toast } from 'sonner';
 
 interface ReplaceSkipperModalProps {
   isOpen: boolean;
@@ -34,7 +35,7 @@ export function ReplaceSkipperModal({
     const finalReason = reason === 'Anders (specificeer hieronder)' ? customReason : reason;
 
     if (!finalReason.trim()) {
-      alert('Selecteer of specificeer een reden');
+      toast.info('Selecteer of specificeer een reden');
       return;
     }
 

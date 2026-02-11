@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { boatsApi } from '../services/api';
 import type { Boat } from '../types';
 import { BoatEditModal } from '../components/boats/BoatEditModal';
+import { toast } from 'sonner';
 
 export function BoatsPage() {
   const [boats, setBoats] = useState<Boat[]>([]);
@@ -10,6 +11,7 @@ export function BoatsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedBoat, setSelectedBoat] = useState<Boat | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [createFormData, setCreateFormData] = useState({
     name: '',
     capacity: 12,
@@ -39,7 +41,7 @@ export function BoatsPage() {
       setBoats(boats.map(b => b.id === boatId ? { ...b, is_active: updatedBoat.is_active } : b));
     } catch (error) {
       console.error('Error toggling boat availability:', error);
-      alert('Fout bij het wijzigen van beschikbaarheid');
+      toast.error('Fout bij het wijzigen van beschikbaarheid');
     }
   };
 
@@ -62,7 +64,7 @@ export function BoatsPage() {
     setCreating(true);
     try {
       await boatsApi.create(createFormData);
-      alert('Boot succesvol toegevoegd!');
+      toast.success('Boot succesvol toegevoegd!');
       setShowCreateModal(false);
       setCreateFormData({
         name: '',
@@ -74,7 +76,7 @@ export function BoatsPage() {
       await loadBoats();
     } catch (error) {
       console.error('Error creating boat:', error);
-      alert('Fout bij toevoegen van boot');
+      toast.error('Fout bij toevoegen van boot');
     } finally {
       setCreating(false);
     }
@@ -103,6 +105,24 @@ export function BoatsPage() {
         </button>
       </div>
 
+      {/* Search */}
+      {boats.length > 0 && (
+        <div className="mb-6">
+          <div className="relative max-w-md">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Zoek op naam of type..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="input pl-10 w-full"
+            />
+          </div>
+        </div>
+      )}
+
       {boats.length === 0 ? (
         <div className="text-center py-12 card">
           <p className="text-gray-600 mb-4">Nog geen boten in de database</p>
@@ -110,7 +130,12 @@ export function BoatsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {boats.map((boat) => (
+          {boats
+            .filter((b) => {
+              const query = searchQuery.toLowerCase();
+              return !query || b.name.toLowerCase().includes(query) || b.boat_type.toLowerCase().includes(query);
+            })
+            .map((boat) => (
           <div key={boat.id} className="card">
             <div className="text-center mb-4">
               <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-ocean-400 to-ocean-600 rounded-full flex items-center justify-center">

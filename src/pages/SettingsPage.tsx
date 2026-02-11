@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { eventTypesApi, settingsApi } from '../services/api';
 import type { EventTypeConfig } from '../types';
+import { ConfirmDialog } from '../components/common/ConfirmDialog';
+import { toast } from 'sonner';
 
 export function SettingsPage() {
   const [eventTypes, setEventTypes] = useState<EventTypeConfig[]>([]);
@@ -13,6 +15,7 @@ export function SettingsPage() {
   const [adminEmail, setAdminEmail] = useState('');
   const [adminNotificationsEnabled, setAdminNotificationsEnabled] = useState(false);
   const [savingNotifications, setSavingNotifications] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<EventTypeConfig | null>(null);
 
   // Automatic reminder settings
   const [automaticRemindersEnabled, setAutomaticRemindersEnabled] = useState(false);
@@ -31,7 +34,7 @@ export function SettingsPage() {
       setEventTypes(data);
     } catch (error) {
       console.error('Error loading event types:', error);
-      alert('Fout bij het laden van event types');
+      toast.error('Fout bij het laden van event types');
     } finally {
       setLoading(false);
     }
@@ -64,10 +67,10 @@ export function SettingsPage() {
         admin_email: adminEmail,
         admin_notifications_enabled: adminNotificationsEnabled,
       });
-      alert('Admin notificatie instellingen opgeslagen!');
+      toast.success('Admin notificatie instellingen opgeslagen!');
     } catch (error) {
       console.error('Error saving admin settings:', error);
-      alert('Fout bij opslaan van admin instellingen');
+      toast.error('Fout bij opslaan van admin instellingen');
     } finally {
       setSavingNotifications(false);
     }
@@ -80,10 +83,10 @@ export function SettingsPage() {
         automatic_reminders_enabled: automaticRemindersEnabled,
         reminder_days_before: reminderDaysBefore,
       });
-      alert('Automatische herinnering instellingen opgeslagen!');
+      toast.success('Automatische herinnering instellingen opgeslagen!');
     } catch (error) {
       console.error('Error saving reminder settings:', error);
-      alert('Fout bij opslaan van herinnering instellingen');
+      toast.error('Fout bij opslaan van herinnering instellingen');
     } finally {
       setSavingReminders(false);
     }
@@ -101,7 +104,7 @@ export function SettingsPage() {
       await loadEventTypes();
     } catch (error) {
       console.error('Error creating event type:', error);
-      alert('Fout bij toevoegen van event type');
+      toast.error('Fout bij toevoegen van event type');
     } finally {
       setCreating(false);
     }
@@ -117,20 +120,26 @@ export function SettingsPage() {
       await loadEventTypes();
     } catch (error) {
       console.error('Error updating event type:', error);
-      alert('Fout bij bijwerken van event type');
+      toast.error('Fout bij bijwerken van event type');
     } finally {
       setSavingId(null);
     }
   };
 
-  const handleDelete = async (eventType: EventTypeConfig) => {
-    if (!confirm(`Weet je zeker dat je "${eventType.label}" wilt verwijderen?`)) return;
+  const handleDelete = (eventType: EventTypeConfig) => {
+    setDeleteConfirm(eventType);
+  };
+
+  const executeDelete = async () => {
+    if (!deleteConfirm) return;
     try {
-      await eventTypesApi.delete(eventType.id);
+      await eventTypesApi.delete(deleteConfirm.id);
+      setDeleteConfirm(null);
       await loadEventTypes();
     } catch (error) {
       console.error('Error deleting event type:', error);
-      alert('Event type kan niet verwijderd worden (mogelijk in gebruik)');
+      toast.error('Event type kan niet verwijderd worden (mogelijk in gebruik)');
+      setDeleteConfirm(null);
     }
   };
 
@@ -319,6 +328,16 @@ export function SettingsPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        title="Event type verwijderen"
+        message={`Weet je zeker dat je "${deleteConfirm?.label}" wilt verwijderen?`}
+        confirmLabel="Verwijderen"
+        variant="danger"
+        onConfirm={executeDelete}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   );
 }

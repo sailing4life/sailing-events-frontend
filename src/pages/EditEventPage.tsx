@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { eventsApi, eventTypesApi } from '../services/api';
 import type { Event, EventTypeConfig } from '../types';
+import { toast } from 'sonner';
 
 interface EventFormData {
   event_name: string;
@@ -57,7 +58,7 @@ export function EditEventPage() {
       });
     } catch (error) {
       console.error('Error loading event:', error);
-      alert('Fout bij het laden van het event');
+      toast.error('Fout bij het laden van het event');
       navigate('/');
     } finally {
       setLoading(false);
@@ -91,12 +92,12 @@ export function EditEventPage() {
         required_coaches: formData.required_coaches,
       });
 
-      alert('Event succesvol bijgewerkt!');
+      toast.success('Event succesvol bijgewerkt!');
       navigate(`/events/${id}`);
     } catch (error: any) {
       console.error('Error updating event:', error);
       const errorMessage = error.response?.data?.detail || 'Fout bij het bijwerken van het event';
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
     }

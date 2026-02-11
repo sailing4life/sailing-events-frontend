@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import type { Boat, BoatMaintenance } from '../../types';
 import { boatsApi } from '../../services/api';
+import { ConfirmDialog } from '../common/ConfirmDialog';
+import { toast } from 'sonner';
 
 interface BoatEditModalProps {
   isOpen: boolean;
@@ -15,6 +17,7 @@ export function BoatEditModal({ isOpen, onClose, onUpdated, boat }: BoatEditModa
   const [newPriority, setNewPriority] = useState<'low' | 'normal' | 'high' | 'urgent'>('normal');
   const [loading, setLoading] = useState(false);
   const [savingBoat, setSavingBoat] = useState(false);
+  const [deleteTaskConfirm, setDeleteTaskConfirm] = useState<number | null>(null);
   const [boatForm, setBoatForm] = useState({
     name: '',
     capacity: 0,
@@ -60,7 +63,7 @@ export function BoatEditModal({ isOpen, onClose, onUpdated, boat }: BoatEditModa
       await loadMaintenanceTasks();
     } catch (error) {
       console.error('Error creating task:', error);
-      alert('Fout bij het toevoegen van taak');
+      toast.error('Fout bij het toevoegen van taak');
     } finally {
       setLoading(false);
     }
@@ -79,15 +82,21 @@ export function BoatEditModal({ isOpen, onClose, onUpdated, boat }: BoatEditModa
     }
   };
 
-  const handleDeleteTask = async (taskId: number) => {
-    if (!boat || !confirm('Weet je zeker dat je deze taak wilt verwijderen?')) return;
+  const handleDeleteTask = (taskId: number) => {
+    setDeleteTaskConfirm(taskId);
+  };
+
+  const executeDeleteTask = async () => {
+    if (!boat || deleteTaskConfirm === null) return;
 
     try {
-      await boatsApi.deleteMaintenance(boat.id, taskId);
+      await boatsApi.deleteMaintenance(boat.id, deleteTaskConfirm);
+      setDeleteTaskConfirm(null);
       await loadMaintenanceTasks();
     } catch (error) {
       console.error('Error deleting task:', error);
-      alert('Fout bij het verwijderen van taak');
+      toast.error('Fout bij het verwijderen van taak');
+      setDeleteTaskConfirm(null);
     }
   };
 
@@ -104,10 +113,10 @@ export function BoatEditModal({ isOpen, onClose, onUpdated, boat }: BoatEditModa
         is_active: boatForm.is_active,
       });
       onUpdated?.(updated);
-      alert('Bootgegevens bijgewerkt!');
+      toast.success('Bootgegevens bijgewerkt!');
     } catch (error) {
       console.error('Error updating boat:', error);
-      alert('Fout bij het bijwerken van de boot');
+      toast.error('Fout bij het bijwerken van de boot');
     } finally {
       setSavingBoat(false);
     }
@@ -343,6 +352,16 @@ export function BoatEditModal({ isOpen, onClose, onUpdated, boat }: BoatEditModa
             Sluiten
           </button>
         </div>
+
+        <ConfirmDialog
+          isOpen={deleteTaskConfirm !== null}
+          title="Taak verwijderen"
+          message="Weet je zeker dat je deze taak wilt verwijderen?"
+          confirmLabel="Verwijderen"
+          variant="danger"
+          onConfirm={executeDeleteTask}
+          onCancel={() => setDeleteTaskConfirm(null)}
+        />
       </div>
     </div>
   );

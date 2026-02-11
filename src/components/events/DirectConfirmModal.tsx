@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import type { Skipper, Event } from '../../types';
+import { ConfirmDialog } from '../common/ConfirmDialog';
+import { toast } from 'sonner';
 
 interface DirectConfirmModalProps {
   isOpen: boolean;
@@ -21,6 +23,7 @@ export function DirectConfirmModal({
   const [selectedSkippers, setSelectedSkippers] = useState<Set<number>>(new Set());
   const [selectedRole, setSelectedRole] = useState<RoleType>('skipper');
   const [confirming, setConfirming] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const handleToggleSkipper = (skipperId: number) => {
     setSelectedSkippers(prev => {
@@ -34,23 +37,16 @@ export function DirectConfirmModal({
     });
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (selectedSkippers.size === 0) {
-      alert('Selecteer minimaal één schipper');
+      toast.info('Selecteer minimaal één schipper');
       return;
     }
+    setShowConfirmDialog(true);
+  };
 
-    const roleLabel = {
-      skipper: 'schipper(s)',
-      head_skipper: 'hoofdschipper',
-      race_director: 'wedstrijdleider(s)',
-      coach: 'coach(es)'
-    }[selectedRole];
-
-    if (!confirm(`Wil je ${selectedSkippers.size} ${roleLabel} direct bevestigen voor dit event?`)) {
-      return;
-    }
-
+  const executeSubmit = async () => {
+    setShowConfirmDialog(false);
     setConfirming(true);
     try {
       const assignments = Array.from(selectedSkippers).map(skipper_id => ({
@@ -68,6 +64,13 @@ export function DirectConfirmModal({
       setConfirming(false);
     }
   };
+
+  const roleLabel = {
+    skipper: 'schipper(s)',
+    head_skipper: 'hoofdschipper',
+    race_director: 'wedstrijdleider(s)',
+    coach: 'coach(es)'
+  }[selectedRole];
 
   const handleClose = () => {
     if (!confirming) {
@@ -192,6 +195,16 @@ export function DirectConfirmModal({
             </button>
           </div>
         </div>
+
+        <ConfirmDialog
+          isOpen={showConfirmDialog}
+          title="Schippers bevestigen"
+          message={`Wil je ${selectedSkippers.size} ${roleLabel} direct bevestigen voor dit event?`}
+          confirmLabel="Bevestigen"
+          variant="info"
+          onConfirm={executeSubmit}
+          onCancel={() => setShowConfirmDialog(false)}
+        />
       </div>
     </div>
   );
