@@ -118,7 +118,8 @@ export function CreateEventPage() {
       alert(
         `Event succesvol aangemaakt!\n\n${invitationResult.message}\n` +
         `Schippers: ${invitationResult.skippers}\n` +
-        `Wedstrijdleiding: ${invitationResult.race_directors}`
+        `Wedstrijdleiding: ${invitationResult.race_directors}` +
+        (invitationResult.coaches ? `\nCoaches: ${invitationResult.coaches}` : '')
       );
       navigate('/');
     } catch (error: any) {
