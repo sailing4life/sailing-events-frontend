@@ -489,7 +489,6 @@ export function EventDetailPage() {
   const availableCoaches = coachInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
   const confirmedCoaches = coachInvitations.filter(inv => inv.status === 'confirmed').length;
   const availableCount = availableSkippers + availableRaceDirectors + availableCoaches;
-  const totalInvitations = invitations.length;
   const requiredSkippers = event.event_boats.length;
   const requiredRaceDirectors = event.required_race_directors || 0;
   const requiredCoaches = event.required_coaches || 0;
@@ -577,14 +576,15 @@ export function EventDetailPage() {
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Primary actions */}
           <button
             onClick={handleOpenEditModal}
             disabled={actionLoading || event.workflow_phase === 'finalized'}
             className="px-4 py-2 rounded-lg font-medium transition-colors bg-cyan-600 text-white hover:bg-cyan-700 disabled:opacity-50"
             title={event.workflow_phase === 'finalized' ? 'Event is afgesloten en kan niet meer bewerkt worden' : ''}
           >
-            ✏️ Event Bewerken
+            ✏️ Bewerken
           </button>
           {(() => {
             const confirmedEmails = invitations
@@ -596,7 +596,7 @@ export function EventDetailPage() {
                 href={`mailto:${uniqueEmails.join(',')}?subject=${encodeURIComponent(`Draaiboek: ${event.event_name} - ${formattedDate}`)}`}
                 className="px-4 py-2 rounded-lg font-medium transition-colors bg-green-600 text-white hover:bg-green-700 inline-flex items-center gap-1"
               >
-                📧 Email Deelnemers ({uniqueEmails.length})
+                📧 Email ({uniqueEmails.length})
               </a>
             ) : null;
           })()}
@@ -605,14 +605,19 @@ export function EventDetailPage() {
             disabled={actionLoading || event.workflow_phase !== 'invitation' || !allConfirmed}
             className="px-4 py-2 rounded-lg font-medium transition-colors bg-yellow-600 text-white hover:bg-yellow-700 disabled:opacity-50"
           >
-            ✅ Event Afsluiten
+            ✅ Afsluiten
           </button>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Destructive action */}
           <button
             onClick={handleCancelEvent}
             disabled={actionLoading}
-            className="px-4 py-2 rounded-lg font-medium transition-colors bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+            className="px-4 py-2 rounded-lg font-medium transition-colors bg-white text-red-600 border border-red-300 hover:bg-red-50 disabled:opacity-50"
           >
-            🗑️ Event Annuleren
+            🗑️ Annuleren
           </button>
         </div>
       </div>
@@ -701,7 +706,22 @@ export function EventDetailPage() {
             </div>
 
             <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
-              Nog te bevestigen schippers: <span className="font-semibold text-gray-900">{remainingSkipperConfirmations}</span>
+              <span className="font-medium">Nog te bevestigen:</span>{' '}
+              <span className="inline-flex items-center gap-3">
+                <span>
+                  <span className="font-semibold text-gray-900">{remainingSkipperConfirmations}</span> schipper{remainingSkipperConfirmations !== 1 ? 's' : ''}
+                </span>
+                {requiredRaceDirectors > 0 && (
+                  <span>
+                    <span className="font-semibold text-gray-900">{remainingRaceDirectorConfirmations}</span> wedstrijdleider{remainingRaceDirectorConfirmations !== 1 ? 's' : ''}
+                  </span>
+                )}
+                {requiredCoaches > 0 && (
+                  <span>
+                    <span className="font-semibold text-gray-900">{remainingCoachConfirmations}</span> coach{remainingCoachConfirmations !== 1 ? 'es' : ''}
+                  </span>
+                )}
+              </span>
             </div>
 
             <div className="flex flex-wrap gap-2 mb-4">
@@ -941,29 +961,6 @@ export function EventDetailPage() {
                 </p>
               </div>
             )}
-          </div>
-
-          {/* Event Details */}
-          <div className="card">
-            <h3 className="font-semibold text-gray-900 mb-4">Event Info</h3>
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm text-gray-600">Aantal boten</p>
-                <p className="font-semibold text-gray-900">{event.event_boats.length}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Uitnodigingen verstuurd</p>
-                <p className="font-semibold text-gray-900">{totalInvitations}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Beschikbare deelnemers</p>
-                <p className="font-semibold text-orange-600 text-lg">{availableCount}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Bevestigde schippers</p>
-                <p className="font-semibold text-green-600 text-lg">{confirmedSkippers}</p>
-              </div>
-            </div>
           </div>
 
           {/* Timeline */}

@@ -30,6 +30,7 @@ export function CreateEventPage() {
   const [showEventTypeModal, setShowEventTypeModal] = useState(false);
   const [creatingType, setCreatingType] = useState(false);
   const [newTypeLabel, setNewTypeLabel] = useState('');
+  const [expandedSection, setExpandedSection] = useState<string | null>('head_skipper');
   const [formData, setFormData] = useState<EventFormData>({
     event_name: '',
     company_name: '',
@@ -430,15 +431,75 @@ export function CreateEventPage() {
         )}
 
         {/* Step 3: Invite Skippers */}
-        {step === 3 && (
+        {step === 3 && (() => {
+          const totalSkippers = formData.selected_skippers.length + (formData.selected_head_skipper ? 1 : 0);
+          const skipperShortage = formData.selected_boats.length - totalSkippers;
+          const rdShortage = formData.required_race_directors - formData.selected_race_directors.length;
+          const coachShortage = formData.required_coaches - formData.selected_coaches.length;
+          const hasShortage = skipperShortage > 0 || rdShortage > 0 || (coachShortage > 0 && formData.event_type === 'coaching');
+
+          const renderPersonCard = (
+            skipper: Skipper,
+            isSelected: boolean,
+            onSelect: () => void,
+            colorClass: string,
+            checkColor: string
+          ) => (
+            <div
+              key={skipper.id}
+              onClick={onSelect}
+              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                isSelected ? colorClass : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="font-medium text-gray-900">
+                    {skipper.first_name} {skipper.last_name}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
+                  </p>
+                  {skipper.notes && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Notities: {skipper.notes}
+                    </p>
+                  )}
+                </div>
+                {isSelected && (
+                  <svg className={`w-5 h-5 ${checkColor}`} fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </div>
+            </div>
+          );
+
+          const toggleSection = (section: string) => {
+            setExpandedSection(prev => prev === section ? null : section);
+          };
+
+          return (
           <div>
             <h2 className="text-xl font-semibold mb-4">Schippers Uitnodigen</h2>
-            <p className="text-gray-600 mb-4">
-              Selecteer een hoofdschipper en/of schippers om uit te nodigen. Minimaal {formData.selected_boats.length} schipper(s) nodig voor {formData.selected_boats.length} boten.
-              {formData.required_race_directors > 0 && (
-                <> Daarnaast zijn er {formData.required_race_directors} wedstrijdleider(s) nodig.</>
-              )}
-            </p>
+
+            {/* Summary bar */}
+            <div className={`mb-4 p-3 rounded-lg border ${hasShortage ? 'bg-yellow-50 border-yellow-200' : 'bg-green-50 border-green-200'}`}>
+              <div className="flex flex-wrap gap-4 text-sm">
+                <span className={skipperShortage > 0 ? 'text-yellow-800' : 'text-green-800'}>
+                  ⛵ {totalSkippers}/{formData.selected_boats.length} schippers
+                </span>
+                <span className={rdShortage > 0 ? 'text-yellow-800' : 'text-green-800'}>
+                  📋 {formData.selected_race_directors.length}/{formData.required_race_directors} wedstrijdleiding
+                </span>
+                {formData.event_type === 'coaching' && (
+                  <span className={coachShortage > 0 ? 'text-yellow-800' : 'text-green-800'}>
+                    🏅 {formData.selected_coaches.length}/{formData.required_coaches} coaches
+                  </span>
+                )}
+              </div>
+            </div>
+
             {formData.event_type === 'coaching' && (
               <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-800">
@@ -447,247 +508,149 @@ export function CreateEventPage() {
               </div>
             )}
 
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-900">👑 Hoofdschipper (optioneel)</h3>
-                <span className="text-sm text-gray-600">
-                  {formData.selected_head_skipper ? '1 geselecteerd' : 'Geen'}
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 mb-3">
-                Selecteer één hoofdschipper voor dit event
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {skippers
-                  .filter(s => !formData.selected_skippers.includes(s.id))
-                  .filter(s => !formData.selected_race_directors.includes(s.id))
-                  .filter(s => !formData.selected_coaches.includes(s.id))
-                  .filter(s => formData.event_type === 'coaching' ? s.is_coach : s.is_skipper)
-                  .map((skipper) => (
-                    <div
-                      key={skipper.id}
-                      onClick={() => selectHeadSkipper(skipper.id)}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                        formData.selected_head_skipper === skipper.id
-                          ? 'border-blue-600 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                        <p className="font-medium text-gray-900">
-                          {skipper.first_name} {skipper.last_name}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
-                        </p>
-                        {skipper.notes && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Notities: {skipper.notes}
-                          </p>
-                        )}
-                      </div>
-                        {formData.selected_head_skipper === skipper.id && (
-                          <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </div>
-
-            <div className="mb-6 border-t pt-6">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-900">⛵ Schippers</h3>
-                <span className="text-sm text-gray-600">
-                  {formData.selected_skippers.length} geselecteerd
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {skippers
-                  .filter(s => s.id !== formData.selected_head_skipper)
-                  .filter(s => !formData.selected_race_directors.includes(s.id))
-                  .filter(s => !formData.selected_coaches.includes(s.id))
-                  .filter(s => formData.event_type === 'coaching' ? s.is_coach : s.is_skipper)
-                  .map((skipper) => (
-                    <div
-                      key={skipper.id}
-                      onClick={() => toggleSkipper(skipper.id)}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                        formData.selected_skippers.includes(skipper.id)
-                          ? 'border-cyan-600 bg-cyan-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                        <p className="font-medium text-gray-900">
-                          {skipper.first_name} {skipper.last_name}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
-                        </p>
-                        {skipper.notes && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Notities: {skipper.notes}
-                          </p>
-                        )}
-                      </div>
-                        {formData.selected_skippers.includes(skipper.id) && (
-                          <svg className="w-5 h-5 text-cyan-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </div>
-
-            <div className="border-t pt-6">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-900">📋 Wedstrijdleiding (optioneel)</h3>
-                <span className="text-sm text-gray-600">
-                  {formData.selected_race_directors.length} geselecteerd
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 mb-3">
-                Wedstrijdleiding krijgt geen boot toegewezen maar wordt wel uitgenodigd
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {skippers
-                  .filter(s => s.id !== formData.selected_head_skipper)
-                  .filter(s => !formData.selected_skippers.includes(s.id))
-                  .filter(s => !formData.selected_coaches.includes(s.id))
-                  .filter(s => s.is_race_director)
-                  .map((skipper) => (
-                    <div
-                      key={skipper.id}
-                      onClick={() => toggleRaceDirector(skipper.id)}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                        formData.selected_race_directors.includes(skipper.id)
-                          ? 'border-purple-600 bg-purple-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                        <p className="font-medium text-gray-900">
-                          {skipper.first_name} {skipper.last_name}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
-                        </p>
-                        {skipper.notes && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Notities: {skipper.notes}
-                          </p>
-                        )}
-                      </div>
-                        {formData.selected_race_directors.includes(skipper.id) && (
-                          <svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </div>
-
-            {/* Coach selection (only for coaching events) */}
-            {formData.event_type === 'coaching' && (
-              <div className="border-t pt-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900">🏅 Coaches</h3>
-                  <span className="text-sm text-gray-600">
-                    {formData.selected_coaches.length} geselecteerd
+            <div className="space-y-3">
+              {/* Head Skipper */}
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => toggleSection('head_skipper')}
+                  className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className={`w-4 h-4 transition-transform ${expandedSection === 'head_skipper' ? 'rotate-90' : ''}`} fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                    <h3 className="font-semibold text-gray-900">👑 Hoofdschipper</h3>
+                    <span className="text-xs text-gray-500">(optioneel)</span>
+                  </div>
+                  <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${
+                    formData.selected_head_skipper ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-600'
+                  }`}>
+                    {formData.selected_head_skipper ? '1' : '0'}
                   </span>
-                </div>
-                <p className="text-sm text-gray-600 mb-3">
-                  Coaches krijgen geen boot toegewezen maar worden wel uitgenodigd
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {skippers
-                    .filter(s => s.id !== formData.selected_head_skipper)
-                    .filter(s => !formData.selected_skippers.includes(s.id))
-                    .filter(s => !formData.selected_race_directors.includes(s.id))
-                    .filter(s => s.is_coach)
-                    .map((skipper) => (
-                      <div
-                        key={skipper.id}
-                        onClick={() => toggleCoach(skipper.id)}
-                        className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                          formData.selected_coaches.includes(skipper.id)
-                            ? 'border-green-600 bg-green-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                          <p className="font-medium text-gray-900">
-                            {skipper.first_name} {skipper.last_name}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
-                          </p>
-                          {skipper.notes && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              Notities: {skipper.notes}
-                            </p>
-                          )}
-                        </div>
-                          {formData.selected_coaches.includes(skipper.id) && (
-                            <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                </div>
+                </button>
+                {expandedSection === 'head_skipper' && (
+                  <div className="p-4 border-t">
+                    <p className="text-sm text-gray-600 mb-3">Selecteer één hoofdschipper voor dit event</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {skippers
+                        .filter(s => !formData.selected_skippers.includes(s.id))
+                        .filter(s => !formData.selected_race_directors.includes(s.id))
+                        .filter(s => !formData.selected_coaches.includes(s.id))
+                        .filter(s => formData.event_type === 'coaching' ? s.is_coach : s.is_skipper)
+                        .map(s => renderPersonCard(s, formData.selected_head_skipper === s.id, () => selectHeadSkipper(s.id), 'border-blue-600 bg-blue-50', 'text-blue-600'))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
 
-            {(() => {
-              const totalSkippers = formData.selected_skippers.length + (formData.selected_head_skipper ? 1 : 0);
-              const shortage = formData.selected_boats.length - totalSkippers;
-              return shortage > 0 && (
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm text-yellow-800">
-                    ⚠️ Je hebt nog {shortage} schipper(s) te weinig geselecteerd
-                  </p>
+              {/* Skippers */}
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => toggleSection('skippers')}
+                  className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className={`w-4 h-4 transition-transform ${expandedSection === 'skippers' ? 'rotate-90' : ''}`} fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                    <h3 className="font-semibold text-gray-900">⛵ Schippers</h3>
+                  </div>
+                  <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${
+                    skipperShortage > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-cyan-100 text-cyan-700'
+                  }`}>
+                    {formData.selected_skippers.length}
+                  </span>
+                </button>
+                {expandedSection === 'skippers' && (
+                  <div className="p-4 border-t">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {skippers
+                        .filter(s => s.id !== formData.selected_head_skipper)
+                        .filter(s => !formData.selected_race_directors.includes(s.id))
+                        .filter(s => !formData.selected_coaches.includes(s.id))
+                        .filter(s => formData.event_type === 'coaching' ? s.is_coach : s.is_skipper)
+                        .map(s => renderPersonCard(s, formData.selected_skippers.includes(s.id), () => toggleSkipper(s.id), 'border-cyan-600 bg-cyan-50', 'text-cyan-600'))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Race Directors */}
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => toggleSection('race_directors')}
+                  className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className={`w-4 h-4 transition-transform ${expandedSection === 'race_directors' ? 'rotate-90' : ''}`} fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                    <h3 className="font-semibold text-gray-900">📋 Wedstrijdleiding</h3>
+                    <span className="text-xs text-gray-500">(optioneel)</span>
+                  </div>
+                  <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${
+                    rdShortage > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-purple-100 text-purple-700'
+                  }`}>
+                    {formData.selected_race_directors.length}
+                  </span>
+                </button>
+                {expandedSection === 'race_directors' && (
+                  <div className="p-4 border-t">
+                    <p className="text-sm text-gray-600 mb-3">Wedstrijdleiding krijgt geen boot toegewezen maar wordt wel uitgenodigd</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {skippers
+                        .filter(s => s.id !== formData.selected_head_skipper)
+                        .filter(s => !formData.selected_skippers.includes(s.id))
+                        .filter(s => !formData.selected_coaches.includes(s.id))
+                        .filter(s => s.is_race_director)
+                        .map(s => renderPersonCard(s, formData.selected_race_directors.includes(s.id), () => toggleRaceDirector(s.id), 'border-purple-600 bg-purple-50', 'text-purple-600'))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Coaches (only for coaching events) */}
+              {formData.event_type === 'coaching' && (
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => toggleSection('coaches')}
+                    className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <svg className={`w-4 h-4 transition-transform ${expandedSection === 'coaches' ? 'rotate-90' : ''}`} fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      </svg>
+                      <h3 className="font-semibold text-gray-900">🏅 Coaches</h3>
+                    </div>
+                    <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${
+                      coachShortage > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                    }`}>
+                      {formData.selected_coaches.length}
+                    </span>
+                  </button>
+                  {expandedSection === 'coaches' && (
+                    <div className="p-4 border-t">
+                      <p className="text-sm text-gray-600 mb-3">Coaches krijgen geen boot toegewezen maar worden wel uitgenodigd</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {skippers
+                          .filter(s => s.id !== formData.selected_head_skipper)
+                          .filter(s => !formData.selected_skippers.includes(s.id))
+                          .filter(s => !formData.selected_race_directors.includes(s.id))
+                          .filter(s => s.is_coach)
+                          .map(s => renderPersonCard(s, formData.selected_coaches.includes(s.id), () => toggleCoach(s.id), 'border-green-600 bg-green-50', 'text-green-600'))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              );
-            })()}
-            {(() => {
-              const shortage = formData.required_race_directors - formData.selected_race_directors.length;
-              return shortage > 0 && (
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm text-yellow-800">
-                    ⚠️ Je hebt nog {shortage} wedstrijdleider(s) te weinig geselecteerd
-                  </p>
-                </div>
-              );
-            })()}
-            {(() => {
-              const shortage = formData.required_coaches - formData.selected_coaches.length;
-              return shortage > 0 && formData.event_type === 'coaching' && (
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm text-yellow-800">
-                    ⚠️ Je hebt nog {shortage} coach(es) te weinig geselecteerd
-                  </p>
-                </div>
-              );
-            })()}
+              )}
+            </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* Step 4: Review */}
         {step === 4 && (
