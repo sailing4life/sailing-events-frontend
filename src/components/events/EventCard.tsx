@@ -150,33 +150,90 @@ export function EventCard({ event, eventTypeLabels }: EventCardProps) {
       </div>
 
       <div className="border-t pt-4">
-        <p className="text-xs text-gray-500 mb-2 font-medium">
-          {useInvitations ? 'Uitnodigingen status:' : 'Schippers status:'}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {useInvitations ? (
-            // New workflow: show invitation statuses
-            invitations
-              .filter(inv => inv.role !== 'race_director' && inv.role !== 'coach')
-              .map((invitation) => (
-                <div key={invitation.id} className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-700">
-                    {invitation.skipper.first_name} {invitation.skipper.last_name}
-                    {invitation.role === 'head_skipper' && ' 👑'}
-                  </span>
-                  {getInvitationStatusBadge(invitation.status)}
+        {useInvitations ? (
+          // New workflow: show invitation statuses grouped by role
+          <div className="space-y-3">
+            {/* Schippers */}
+            {(() => {
+              const skipperInvs = invitations.filter(inv => inv.role === 'skipper' || inv.role === 'head_skipper');
+              const confirmed = skipperInvs.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
+              const required = event.event_boats.length;
+              return skipperInvs.length > 0 ? (
+                <div>
+                  <p className="text-xs text-gray-500 mb-1 font-medium">
+                    ⛵ Schippers <span className={confirmed >= required ? 'text-green-600' : 'text-amber-600'}>{confirmed}/{required}</span>
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {skipperInvs.map((inv) => (
+                      <div key={inv.id} className="flex items-center space-x-1">
+                        <span className="text-sm text-gray-700">
+                          {inv.skipper.first_name} {inv.skipper.last_name}
+                          {inv.role === 'head_skipper' && ' 👑'}
+                        </span>
+                        {getInvitationStatusBadge(inv.status)}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))
-          ) : (
-            // Old workflow: show boat statuses
-            eventBoats.map((eb) => (
-              <div key={eb.id} className="flex items-center space-x-2">
-                <span className="text-sm text-gray-700">{eb.boat.name}</span>
-                {getStatusBadge(eb.response_status)}
-              </div>
-            ))
-          )}
-        </div>
+              ) : null;
+            })()}
+            {/* Wedstrijdleiders */}
+            {(() => {
+              const rdInvs = invitations.filter(inv => inv.role === 'race_director');
+              const confirmed = rdInvs.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
+              const required = event.required_race_directors || 0;
+              return rdInvs.length > 0 ? (
+                <div>
+                  <p className="text-xs text-gray-500 mb-1 font-medium">
+                    📋 Wedstrijdleiding <span className={confirmed >= required ? 'text-green-600' : 'text-amber-600'}>{confirmed}/{required}</span>
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {rdInvs.map((inv) => (
+                      <div key={inv.id} className="flex items-center space-x-1">
+                        <span className="text-sm text-gray-700">{inv.skipper.first_name} {inv.skipper.last_name}</span>
+                        {getInvitationStatusBadge(inv.status)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null;
+            })()}
+            {/* Coaches */}
+            {(() => {
+              const coachInvs = invitations.filter(inv => inv.role === 'coach');
+              const confirmed = coachInvs.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
+              const required = event.required_coaches || 0;
+              return coachInvs.length > 0 ? (
+                <div>
+                  <p className="text-xs text-gray-500 mb-1 font-medium">
+                    🏅 Coaches <span className={confirmed >= required ? 'text-green-600' : 'text-amber-600'}>{confirmed}/{required}</span>
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {coachInvs.map((inv) => (
+                      <div key={inv.id} className="flex items-center space-x-1">
+                        <span className="text-sm text-gray-700">{inv.skipper.first_name} {inv.skipper.last_name}</span>
+                        {getInvitationStatusBadge(inv.status)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null;
+            })()}
+          </div>
+        ) : (
+          // Old workflow: show boat statuses
+          <div>
+            <p className="text-xs text-gray-500 mb-2 font-medium">Schippers status:</p>
+            <div className="flex flex-wrap gap-2">
+              {eventBoats.map((eb) => (
+                <div key={eb.id} className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-700">{eb.boat.name}</span>
+                  {getStatusBadge(eb.response_status)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </Link>
   );
