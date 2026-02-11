@@ -533,6 +533,8 @@ export function EventDetailPage() {
     ? `${availableCount}/${totalRequired} Beschikbaar`
     : 'Geen deelnemers';
   const remainingSkipperConfirmations = Math.max(0, requiredSkippers - confirmedSkippers);
+  const remainingRaceDirectorConfirmations = Math.max(0, requiredRaceDirectors - confirmedRaceDirectors);
+  const remainingCoachConfirmations = Math.max(0, requiredCoaches - confirmedCoaches);
   const completeLabel = isComplete ? 'Compleet' : 'Niet compleet';
   const confirmedLabel = event.workflow_phase === 'finalized' ? 'Afgesloten' : (allConfirmed ? 'Bevestigd' : 'Niet bevestigd');
   const invitationMatchesFilter = (status: InvitationStatus) => (
@@ -819,19 +821,19 @@ export function EventDetailPage() {
                                 ✉️ Herinner
                               </button>
                             )}
-                            {invitation.status === 'available' && !isRaceDirector && !isCoach && event.workflow_phase === 'invitation' && (
+                            {invitation.status === 'available' && event.workflow_phase === 'invitation' && (
                               <button
                                 onClick={() => handleConfirmInvitation(
                                   invitation.id,
                                   `${invitation.skipper.first_name} ${invitation.skipper.last_name}`
                                 )}
-                                disabled={actionLoading || remainingSkipperConfirmations === 0}
+                                disabled={actionLoading || (isRaceDirector ? remainingRaceDirectorConfirmations === 0 : isCoach ? remainingCoachConfirmations === 0 : remainingSkipperConfirmations === 0)}
                                 className="px-3 py-1 text-sm rounded-lg font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
                               >
                                 ✓ Bevestig
                               </button>
                             )}
-                            {invitation.status === 'confirmed' && !isRaceDirector && !isCoach && event.workflow_phase === 'finalized' && (
+                            {invitation.status === 'confirmed' && event.workflow_phase === 'finalized' && (
                               <button
                                 onClick={() => {
                                   setInvitationToReplace(invitation);

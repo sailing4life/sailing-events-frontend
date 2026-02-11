@@ -238,6 +238,7 @@ export const eventsApi = {
     skippers: number;
     head_skipper: number;
     race_directors: number;
+    coaches: number;
   }> => {
     const response = await api.post(`/api/events/${eventId}/invitations`, invitationData);
     return response.data;
