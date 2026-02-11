@@ -584,6 +584,20 @@ export function EventDetailPage() {
           >
             ✏️ Event Bewerken
           </button>
+          {(() => {
+            const confirmedEmails = invitations
+              .filter(inv => inv.status === 'confirmed' || inv.status === 'available')
+              .map(inv => inv.skipper.email);
+            const uniqueEmails = [...new Set(confirmedEmails)];
+            return uniqueEmails.length > 0 ? (
+              <a
+                href={`mailto:${uniqueEmails.join(',')}?subject=${encodeURIComponent(`Draaiboek: ${event.event_name} - ${formattedDate}`)}`}
+                className="px-4 py-2 rounded-lg font-medium transition-colors bg-green-600 text-white hover:bg-green-700 inline-flex items-center gap-1"
+              >
+                📧 Email Deelnemers ({uniqueEmails.length})
+              </a>
+            ) : null;
+          })()}
           <button
             onClick={handleCloseEvent}
             disabled={actionLoading || event.workflow_phase !== 'invitation' || !allConfirmed}
