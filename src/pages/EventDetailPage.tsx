@@ -74,6 +74,15 @@ export function EventDetailPage() {
     loadEventTypes();
   }, [id]);
 
+  // Auto-refresh event data every 30 seconds to pick up invitation responses
+  useEffect(() => {
+    if (!id) return;
+    const interval = setInterval(() => {
+      loadEvent();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [id]);
+
   const loadBoats = async () => {
     try {
       const data = await boatsApi.getAll();
