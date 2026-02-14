@@ -72,9 +72,6 @@ export function EventDetailPage() {
 
   useEffect(() => {
     loadEvent();
-    loadBoats();
-    loadSkippers();
-    loadEventTypes();
   }, [id]);
 
   // Auto-refresh event data every 30 seconds to pick up invitation responses
@@ -86,31 +83,25 @@ export function EventDetailPage() {
     return () => clearInterval(interval);
   }, [id]);
 
-  const loadBoats = async () => {
-    try {
-      const data = await boatsApi.getAll();
-      setBoats(data);
-    } catch (error) {
-      console.error('Error loading boats:', error);
+  // Lazy load supporting data only when needed (modals)
+  const ensureModalData = async () => {
+    const promises: Promise<void>[] = [];
+    if (boats.length === 0) {
+      promises.push(
+        boatsApi.getAll().then(data => setBoats(data)).catch(e => console.error('Error loading boats:', e))
+      );
     }
-  };
-
-  const loadSkippers = async () => {
-    try {
-      const data = await skippersApi.getAll();
-      setSkippers(data.filter(s => s.is_active));
-    } catch (error) {
-      console.error('Error loading skippers:', error);
+    if (skippers.length === 0) {
+      promises.push(
+        skippersApi.getAll().then(data => setSkippers(data.filter(s => s.is_active))).catch(e => console.error('Error loading skippers:', e))
+      );
     }
-  };
-
-  const loadEventTypes = async () => {
-    try {
-      const data = await eventTypesApi.getAll(true);
-      setEventTypes(data);
-    } catch (error) {
-      console.error('Error loading event types:', error);
+    if (eventTypes.length === 0) {
+      promises.push(
+        eventTypesApi.getAll(true).then(data => setEventTypes(data)).catch(e => console.error('Error loading event types:', e))
+      );
     }
+    if (promises.length > 0) await Promise.all(promises);
   };
 
   const loadEvent = async () => {
@@ -345,7 +336,8 @@ export function EventDetailPage() {
     }
   };
 
-  const handleOpenInviteModal = (role: 'head_skipper' | 'skippers' | 'race_director' | 'coach') => {
+  const handleOpenInviteModal = async (role: 'head_skipper' | 'skippers' | 'race_director' | 'coach') => {
+    await ensureModalData();
     setInviteRole(role);
     setSelectedSkippers([]);
     setSelectedRaceDirectors([]);
@@ -449,8 +441,9 @@ export function EventDetailPage() {
     });
   };
 
-  const handleOpenEditModal = () => {
+  const handleOpenEditModal = async () => {
     if (!event) return;
+    await ensureModalData();
 
     setEditFormData({
       event_name: event.event_name,
@@ -729,7 +722,7 @@ export function EventDetailPage() {
               </div>
               <div className="flex gap-2">
                 <button
-                  onClick={() => setDirectConfirmModalOpen(true)}
+                  onClick={async () => { await ensureModalData(); setDirectConfirmModalOpen(true); }}
                   disabled={actionLoading}
                   className="btn-primary flex items-center gap-2 disabled:opacity-50"
                 >
