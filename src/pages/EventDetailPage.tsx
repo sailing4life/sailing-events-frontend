@@ -8,7 +8,10 @@ import { ReplaceSkipperModal } from '../components/events/ReplaceSkipperModal';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { toast } from 'sonner';
 
-const getInvitationStatusBadge = (status: InvitationStatus) => {
+const getInvitationStatusBadge = (status: InvitationStatus, isFinalized = false) => {
+  if (isFinalized && (status === 'available' || status === 'maybe' || status === 'pending')) {
+    return { class: 'badge-no', label: 'Niet geselecteerd', icon: '—' };
+  }
   const badges = {
     pending: { class: 'badge-pending', label: 'Wachtend', icon: '⏳' },
     available: { class: 'badge-yes', label: 'Beschikbaar', icon: '✓' },
@@ -847,7 +850,7 @@ export function EventDetailPage() {
                         ) : (
                           <div className="space-y-3">
                             {visibleInvitations.map((invitation) => {
-                              const statusInfo = getInvitationStatusBadge(invitation.status);
+                              const statusInfo = getInvitationStatusBadge(invitation.status, event.workflow_phase === 'finalized');
                               const isRaceDirector = invitation.role === 'race_director';
                               const isHeadSkipper = invitation.role === 'head_skipper';
                               const isCoach = invitation.role === 'coach';
