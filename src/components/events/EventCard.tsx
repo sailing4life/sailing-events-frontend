@@ -24,7 +24,11 @@ const getStatusBadge = (status: ResponseStatus) => {
   return <span className={`badge ${badges[status]}`}>{labels[status]}</span>;
 };
 
-const getInvitationStatusBadge = (status: InvitationStatus) => {
+const getInvitationStatusBadge = (status: InvitationStatus, isFinalized = false) => {
+  if (isFinalized && (status === 'available' || status === 'maybe' || status === 'pending')) {
+    return <span className="badge badge-no">— Niet geselecteerd</span>;
+  }
+
   const badges = {
     pending: 'badge-pending',
     available: 'badge-yes',
@@ -170,7 +174,7 @@ export function EventCard({ event, eventTypeLabels }: EventCardProps) {
                           {inv.skipper.first_name} {inv.skipper.last_name}
                           {inv.role === 'head_skipper' && ' 👑'}
                         </span>
-                        {getInvitationStatusBadge(inv.status)}
+                        {getInvitationStatusBadge(inv.status, event.workflow_phase === 'finalized')}
                       </div>
                     ))}
                   </div>
@@ -191,7 +195,7 @@ export function EventCard({ event, eventTypeLabels }: EventCardProps) {
                     {rdInvs.map((inv) => (
                       <div key={inv.id} className="flex items-center space-x-1">
                         <span className="text-sm text-gray-700">{inv.skipper.first_name} {inv.skipper.last_name}</span>
-                        {getInvitationStatusBadge(inv.status)}
+                        {getInvitationStatusBadge(inv.status, event.workflow_phase === 'finalized')}
                       </div>
                     ))}
                   </div>
@@ -212,7 +216,7 @@ export function EventCard({ event, eventTypeLabels }: EventCardProps) {
                     {coachInvs.map((inv) => (
                       <div key={inv.id} className="flex items-center space-x-1">
                         <span className="text-sm text-gray-700">{inv.skipper.first_name} {inv.skipper.last_name}</span>
-                        {getInvitationStatusBadge(inv.status)}
+                        {getInvitationStatusBadge(inv.status, event.workflow_phase === 'finalized')}
                       </div>
                     ))}
                   </div>
