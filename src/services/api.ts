@@ -15,6 +15,19 @@ const api = axios.create({
   },
 });
 
+// Auto-logout on 401 (expired/invalid token)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && !error.config?.url?.includes('/auth/login')) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 const ensureArray = <T>(value: unknown, label: string): T[] => {
   if (Array.isArray(value)) {
     return value as T[];
