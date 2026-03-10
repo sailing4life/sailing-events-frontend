@@ -1138,7 +1138,7 @@ export function EventDetailPage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                       />
                     </div>
-                    {editFormData.event_type === 'coaching' && (
+                    {['academie', 'proces'].includes(editFormData.event_type) && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Coaches nodig</label>
                         <input
@@ -1296,7 +1296,7 @@ export function EventDetailPage() {
                       .filter(skipper => {
                         if (inviteRole === 'race_director') return skipper.is_race_director;
                         if (inviteRole === 'coach') return skipper.is_coach;
-                        if (event.event_type === 'coaching') return skipper.is_coach;
+                        if (['academie', 'proces'].includes(event.event_type)) return skipper.is_coach;
                         return skipper.is_skipper;
                       })
                       .map((skipper) => (
