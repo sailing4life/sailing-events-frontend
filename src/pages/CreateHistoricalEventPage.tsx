@@ -152,14 +152,8 @@ export function CreateHistoricalEventPage() {
     boat,
     skipperId: formData.boat_assignments[boat.id] ?? '',
   }));
-  const allBoatsAssigned = selectedAssignments.length > 0 && selectedAssignments.every(({ skipperId }) => skipperId !== '');
 
   const handleSubmit = async () => {
-    if (!allBoatsAssigned) {
-      toast.error('Wijs eerst aan elke geselecteerde boot een schipper toe');
-      return;
-    }
-
     const payload: HistoricalEventCreateInput = {
       event_name: formData.event_name,
       company_name: formData.company_name,
@@ -171,7 +165,7 @@ export function CreateHistoricalEventPage() {
       required_coaches: formData.required_coaches,
       boat_assignments: selectedAssignments.map(({ boat, skipperId }) => ({
         boat_id: boat.id,
-        skipper_id: skipperId as number,
+        skipper_id: skipperId === '' ? undefined : skipperId,
       })),
       head_skipper_id: formData.head_skipper_id === '' ? undefined : formData.head_skipper_id,
       race_director_ids: formData.race_director_ids,
@@ -285,8 +279,8 @@ export function CreateHistoricalEventPage() {
                     ...prev,
                     event_type: nextType,
                     required_race_directors: nextType === 'training' ? 0 : prev.required_race_directors,
-                    required_coaches: nextType === 'coaching' ? prev.required_coaches : 0,
-                    coach_ids: nextType === 'coaching' ? prev.coach_ids : [],
+                    required_coaches: ['academie', 'proces'].includes(nextType) ? prev.required_coaches : 0,
+                    coach_ids: ['academie', 'proces'].includes(nextType) ? prev.coach_ids : [],
                   }));
                 }}
                 className="input-field"
@@ -311,7 +305,7 @@ export function CreateHistoricalEventPage() {
                 className="input-field"
               />
             </div>
-            {formData.event_type === 'coaching' && (
+            {['academie', 'proces'].includes(formData.event_type) && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Coaches nodig</label>
                 <input
@@ -343,7 +337,7 @@ export function CreateHistoricalEventPage() {
         <section className="space-y-4">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Boten en schippers</h2>
-            <p className="text-sm text-gray-600 mt-1">Selecteer de gebruikte boten en wijs direct de aanwezige schipper toe.</p>
+            <p className="text-sm text-gray-600 mt-1">Selecteer de gebruikte boten en wijs optioneel een schipper toe per boot.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -450,7 +444,7 @@ export function CreateHistoricalEventPage() {
             </div>
           </div>
 
-          {formData.event_type === 'coaching' && (
+          {['academie', 'proces'].includes(formData.event_type) && (
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-700">Coaches</label>
@@ -493,7 +487,7 @@ export function CreateHistoricalEventPage() {
             !formData.company_name ||
             !formData.event_date ||
             !formData.event_type ||
-            !allBoatsAssigned
+            selectedAssignments.length === 0
           }
           className={`btn-primary ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
