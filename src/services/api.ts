@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Boat, BoatMaintenance, Skipper, Event, Invitation, EventTypeConfig, NotificationItem, SkipperEventHistory, SkipperOpenEvent } from '../types';
+import type { Boat, BoatMaintenance, Skipper, Event, Invitation, EventTypeConfig, NotificationItem, SkipperEventHistory, SkipperOpenEvent, HistoricalEventCreateInput } from '../types';
 
 // API Base URL - uses environment variable if available, falls back to localhost
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -203,6 +203,11 @@ export const eventsApi = {
     boat_ids: number[];
   }): Promise<Event> => {
     const response = await api.post('/api/events', eventData);
+    return response.data;
+  },
+
+  createHistorical: async (eventData: HistoricalEventCreateInput): Promise<Event> => {
+    const response = await api.post('/api/events/historical', eventData);
     return response.data;
   },
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { boatsApi, skippersApi, eventsApi, eventTypesApi } from '../services/api';
 import type { Boat, Skipper, EventTypeConfig } from '../types';
 import { toast } from 'sonner';
@@ -221,6 +221,9 @@ export function CreateEventPage() {
     <div className="max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-8">
+        <Link to="/events/new/historical" className="text-cyan-600 hover:text-cyan-700 text-sm inline-block mb-2">
+          Historisch event invoeren zonder mails
+        </Link>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Nieuw Event Aanmaken</h1>
         <p className="text-gray-600">Maak een nieuw zeilevent aan in {totalSteps} stappen</p>
       </div>

@@ -83,6 +83,26 @@ export interface EventTypeConfig {
   is_active: boolean;
 }
 
+export interface HistoricalBoatAssignmentInput {
+  boat_id: number;
+  skipper_id: number;
+}
+
+export interface HistoricalEventCreateInput {
+  event_name: string;
+  company_name: string;
+  event_date: string;
+  duration: EventDuration;
+  event_type: EventType;
+  notes?: string;
+  required_race_directors: number;
+  required_coaches: number;
+  boat_assignments: HistoricalBoatAssignmentInput[];
+  head_skipper_id?: number;
+  race_director_ids?: number[];
+  coach_ids?: number[];
+}
+
 export interface SkipperStats {
   skipper: Skipper;
   total_events: number;

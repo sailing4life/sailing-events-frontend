@@ -5,6 +5,7 @@ import { Layout } from './components/layout/Layout';
 import { LoginPage } from './pages/LoginPage';
 import { EventsPage } from './pages/EventsPage';
 import { CreateEventPage } from './pages/CreateEventPage';
+import { CreateHistoricalEventPage } from './pages/CreateHistoricalEventPage';
 import { EditEventPage } from './pages/EditEventPage';
 import { EventDetailPage } from './pages/EventDetailPage';
 import { SkippersPage } from './pages/SkippersPage';
@@ -23,6 +24,7 @@ function App() {
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<EventsPage />} />
             <Route path="events/new" element={<CreateEventPage />} />
+            <Route path="events/new/historical" element={<CreateHistoricalEventPage />} />
             <Route path="events/:id" element={<EventDetailPage />} />
             <Route path="events/:id/edit" element={<EditEventPage />} />
             <Route path="skippers" element={<SkippersPage />} />
