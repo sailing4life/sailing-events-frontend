@@ -912,8 +912,13 @@ export function EventDetailPage() {
                                     </div>
                                   </div>
 
+                                  {invitation.status === 'maybe' && invitation.maybe_note && (
+                                    <div className="mt-2 text-sm text-orange-700 bg-orange-50 border border-orange-200 rounded px-3 py-2">
+                                      <span className="font-semibold">Toelichting:</span> {invitation.maybe_note}
+                                    </div>
+                                  )}
                                   {invitation.invitation_sent_at && (
-                                    <div className="text-xs text-gray-500">
+                                    <div className="text-xs text-gray-500 mt-1">
                                       Uitnodiging verstuurd: {new Date(invitation.invitation_sent_at).toLocaleString('nl-NL')}
                                       {invitation.response_received_at && (
                                         <span className="ml-2">
