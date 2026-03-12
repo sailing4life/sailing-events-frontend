@@ -4,7 +4,7 @@ const RESPONSE_CONFIG = {
   yes: {
     icon: '✅',
     title: 'Bedankt voor je bevestiging!',
-    detail: 'Je hebt aangegeven beschikbaar te zijn. We nemen contact met je op zodra de planning definitief is.',
+    detail: 'Je hebt aangegeven beschikbaar te zijn. Je krijgt een bevestiging zodra de planning definitief is.',
     label: 'Beschikbaar',
     color: '#16a34a',
     bg: '#f0fdf4',
@@ -100,7 +100,7 @@ export function ResponsPage() {
             </div>
 
             <p style={{ color: '#64748b', fontSize: 14, marginTop: 30 }}>
-              Je kunt deze pagina nu sluiten. Bij vragen kun je contact opnemen via het opgegeven contactadres.
+              Je kunt deze pagina nu sluiten. Bij vragen kun je contact opnemen.
             </p>
           </>
         ) : (
