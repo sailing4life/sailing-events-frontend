@@ -14,6 +14,7 @@ import { MaintenancePage } from './pages/MaintenancePage';
 import { StatisticsPage } from './pages/StatisticsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
+import { ResponsPage } from './pages/ResponsPage';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/respons" element={<ResponsPage />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<EventsPage />} />
             <Route path="events/new" element={<CreateEventPage />} />
