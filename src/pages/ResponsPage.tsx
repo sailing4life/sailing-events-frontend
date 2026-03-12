@@ -4,7 +4,7 @@ const RESPONSE_CONFIG = {
   yes: {
     icon: '✅',
     title: 'Bedankt voor je bevestiging!',
-    detail: 'Je hebt aangegeven beschikbaar te zijn. Je krijgt een bevestiging zodra de planning definitief is.',
+    detail: 'Je hebt aangegeven beschikbaar te zijn. Je krijgt een bevestiging zodra het definitief is.',
     label: 'Beschikbaar',
     color: '#16a34a',
     bg: '#f0fdf4',
