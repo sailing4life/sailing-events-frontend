@@ -9,6 +9,7 @@ export function Navigation() {
     { path: '/statistics', label: 'Statistieken', icon: '📊' },
     { path: '/notifications', label: 'Notificaties', icon: '🔔' },
     { path: '/settings', label: 'Instellingen', icon: '⚙️' },
+    { path: '/info', label: 'Info', icon: 'ℹ️' },
   ];
 
   return (

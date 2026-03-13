@@ -15,6 +15,7 @@ import { StatisticsPage } from './pages/StatisticsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { ResponsPage } from './pages/ResponsPage';
+import { InfoPage } from './pages/InfoPage';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
             <Route path="statistics" element={<StatisticsPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="info" element={<InfoPage />} />
           </Route>
         </Routes>
       </AuthProvider>
