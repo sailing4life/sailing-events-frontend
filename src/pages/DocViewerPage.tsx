@@ -123,8 +123,8 @@ export function DocViewerPage() {
         >
           <Document
             file={blobUrl}
-            onLoadSuccess={({ numPages }) => { setNumPages(numPages); setPdfLoading(false); }}
-            onLoadError={(err) => { console.error('PDF load error:', err); setPdfLoading(false); }}
+            onLoadSuccess={({ numPages }: { numPages: number }) => { setNumPages(numPages); setPdfLoading(false); }}
+            onLoadError={(err: Error) => { console.error('PDF load error:', err); setPdfLoading(false); }}
             loading={<div style={{ color: 'white', padding: 40 }}>Laden...</div>}
             error={<div style={{ color: '#f87171', padding: 40 }}>Fout bij laden PDF.</div>}
           >
