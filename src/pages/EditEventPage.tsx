@@ -59,7 +59,7 @@ export function EditEventPage() {
     } catch (error) {
       console.error('Error loading event:', error);
       toast.error('Fout bij het laden van het event');
-      navigate('/');
+      navigate('/events');
     } finally {
       setLoading(false);
     }

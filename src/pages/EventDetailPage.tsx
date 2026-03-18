@@ -5,6 +5,7 @@ import type { Event, InvitationStatus, Boat, Skipper, EventTypeConfig, Invitatio
 import { ManualAssignmentModal } from '../components/events/ManualAssignmentModal';
 import { DirectConfirmModal } from '../components/events/DirectConfirmModal';
 import { ReplaceSkipperModal } from '../components/events/ReplaceSkipperModal';
+import { RateConfirmModal } from '../components/events/RateConfirmModal';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { toast } from 'sonner';
 
@@ -57,6 +58,12 @@ export function EventDetailPage() {
     variant?: 'danger' | 'warning' | 'info';
     confirmLabel?: string;
     onConfirm: () => void;
+  } | null>(null);
+  const [rateModal, setRateModal] = useState<{
+    participants: Array<{ invitationId: number; name: string; role: string; rate: number }>;
+    title: string;
+    confirmLabel: string;
+    onConfirm: (rates: Record<number, number>) => void;
   } | null>(null);
   const [editFormData, setEditFormData] = useState({
     event_name: '',
@@ -137,7 +144,7 @@ export function EventDetailPage() {
             ? ` (${emails.sent} mails verstuurd, ${emails.failed} mislukt)`
             : '';
           toast.success(`${result.message}${emailSummary}`);
-          navigate('/');
+          navigate('/events');
         } catch (error) {
           console.error('Error canceling event:', error);
           toast.error('Fout bij het annuleren van het event');
@@ -150,26 +157,58 @@ export function EventDetailPage() {
   const handleCloseEvent = () => {
     if (!event || !id) return;
 
-    setConfirmAction({
-      title: 'Event afsluiten',
-      message: `Wil je het event "${event.event_name}" afsluiten? Beschikbare schippers die niet gekozen zijn krijgen een bericht.`,
-      variant: 'warning',
+    // Gather all confirmed invitations
+    const confirmed = (event.invitations || []).filter((inv: Invitation) => inv.status === 'confirmed');
+    const isHalfDay = ['half_day', 'morning', 'afternoon'].includes(event.duration);
+
+    const participants = confirmed.map((inv: Invitation) => ({
+      invitationId: inv.id,
+      name: `${inv.skipper.first_name} ${inv.skipper.last_name}`,
+      role: inv.role,
+      rate: isHalfDay ? (inv.skipper.half_day_rate ?? 0) : (inv.skipper.full_day_rate ?? 0),
+    }));
+
+    if (participants.length === 0) {
+      // No confirmed participants, just close directly
+      setConfirmAction({
+        title: 'Event afsluiten',
+        message: `Wil je het event "${event.event_name}" afsluiten? Beschikbare schippers die niet gekozen zijn krijgen een bericht.`,
+        variant: 'warning',
+        confirmLabel: 'Afsluiten',
+        onConfirm: async () => {
+          setConfirmAction(null);
+          setActionLoading(true);
+          try {
+            const result = await eventsApi.close(parseInt(id));
+            const emails = result.emails;
+            const emailSummary = emails ? ` (${emails.sent} mails verstuurd, ${emails.failed} mislukt)` : '';
+            toast.success(`${result.message}${emailSummary}`);
+            await loadEvent();
+          } catch (error: any) {
+            toast.error(error.response?.data?.detail || 'Fout bij het afsluiten van het event');
+          } finally {
+            setActionLoading(false);
+          }
+        },
+      });
+      return;
+    }
+
+    setRateModal({
+      participants,
+      title: 'Event afsluiten — tarieven controleren',
       confirmLabel: 'Afsluiten',
-      onConfirm: async () => {
-        setConfirmAction(null);
+      onConfirm: async (_rates) => {
+        setRateModal(null);
         setActionLoading(true);
         try {
           const result = await eventsApi.close(parseInt(id));
           const emails = result.emails;
-          const emailSummary = emails
-            ? ` (${emails.sent} mails verstuurd, ${emails.failed} mislukt)`
-            : '';
+          const emailSummary = emails ? ` (${emails.sent} mails verstuurd, ${emails.failed} mislukt)` : '';
           toast.success(`${result.message}${emailSummary}`);
           await loadEvent();
         } catch (error: any) {
-          console.error('Error closing event:', error);
-          const errorMessage = error.response?.data?.detail || 'Fout bij het afsluiten van het event';
-          toast.error(errorMessage);
+          toast.error(error.response?.data?.detail || 'Fout bij het afsluiten van het event');
         } finally {
           setActionLoading(false);
         }
@@ -177,23 +216,27 @@ export function EventDetailPage() {
     });
   };
 
-  const handleConfirmInvitation = (invitationId: number, skipperName: string) => {
-    setConfirmAction({
-      title: 'Schipper bevestigen',
-      message: `Wil je ${skipperName} definitief bevestigen voor dit event?`,
-      variant: 'info',
-      confirmLabel: 'Bevestigen',
-      onConfirm: async () => {
-        setConfirmAction(null);
+  const handleConfirmInvitation = (invitation: Invitation) => {
+    if (!event) return;
+    const skipper = invitation.skipper;
+    const isHalfDay = ['half_day', 'morning', 'afternoon'].includes(event.duration);
+    const defaultRate = isHalfDay ? (skipper.half_day_rate ?? 0) : (skipper.full_day_rate ?? 0);
+    const name = `${skipper.first_name} ${skipper.last_name}`;
+
+    setRateModal({
+      participants: [{ invitationId: invitation.id, name, role: invitation.role, rate: defaultRate }],
+      title: `${name} bevestigen`,
+      confirmLabel: 'Bevestigen & stuur email',
+      onConfirm: async (rates) => {
+        setRateModal(null);
         setActionLoading(true);
         try {
-          const result = await invitationsApi.confirm(invitationId);
+          const rate = rates[invitation.id];
+          const result = await invitationsApi.confirm(invitation.id, rate);
           toast.success(result.message);
           await loadEvent();
         } catch (error: any) {
-          console.error('Error confirming invitation:', error);
-          const errorMessage = error.response?.data?.detail || 'Fout bij het bevestigen';
-          toast.error(errorMessage);
+          toast.error(error.response?.data?.detail || 'Fout bij het bevestigen');
         } finally {
           setActionLoading(false);
         }
@@ -884,10 +927,7 @@ export function EventDetailPage() {
                             )}
                             {invitation.status === 'available' && event.workflow_phase === 'invitation' && (
                               <button
-                                onClick={() => handleConfirmInvitation(
-                                  invitation.id,
-                                  `${invitation.skipper.first_name} ${invitation.skipper.last_name}`
-                                )}
+                                onClick={() => handleConfirmInvitation(invitation)}
                                 disabled={actionLoading || (isRaceDirector ? remainingRaceDirectorConfirmations === 0 : isCoach ? remainingCoachConfirmations === 0 : remainingSkipperConfirmations === 0)}
                                 className="px-3 py-1 text-sm rounded-lg font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
                               >
@@ -1464,6 +1504,17 @@ export function EventDetailPage() {
         onConfirm={() => confirmAction?.onConfirm()}
         onCancel={() => setConfirmAction(null)}
       />
+
+      {/* Rate Confirm Modal */}
+      {rateModal && (
+        <RateConfirmModal
+          participants={rateModal.participants}
+          title={rateModal.title}
+          confirmLabel={rateModal.confirmLabel}
+          onConfirm={rateModal.onConfirm}
+          onCancel={() => setRateModal(null)}
+        />
+      )}
     </div>
   );
 }

@@ -2,7 +2,8 @@ import { NavLink } from 'react-router-dom';
 
 export function Navigation() {
   const navItems = [
-    { path: '/', label: 'Events', icon: '📅' },
+    { path: '/', label: 'Dashboard', icon: '🏠' },
+    { path: '/events', label: 'Events', icon: '📅' },
     { path: '/skippers', label: 'Schippers', icon: '⚓' },
     { path: '/boats', label: 'Boten', icon: '⛵' },
     { path: '/maintenance', label: 'Onderhoud', icon: '🔧' },

@@ -15,6 +15,7 @@ import { StatisticsPage } from './pages/StatisticsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { ResponsPage } from './pages/ResponsPage';
+import { DashboardPage } from './pages/DashboardPage';
 
 function App() {
   return (
@@ -24,7 +25,8 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/respons" element={<ResponsPage />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-            <Route index element={<EventsPage />} />
+            <Route index element={<DashboardPage />} />
+            <Route path="events" element={<EventsPage />} />
             <Route path="events/new" element={<CreateEventPage />} />
             <Route path="events/new/historical" element={<CreateHistoricalEventPage />} />
             <Route path="events/:id" element={<EventDetailPage />} />

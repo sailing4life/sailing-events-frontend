@@ -118,7 +118,7 @@ export function CreateEventPage() {
       });
 
       toast.success(`Event succesvol aangemaakt! ${invitationResult.message}`);
-      navigate('/');
+      navigate('/events');
     } catch (error: any) {
       console.error('Error creating event:', error);
       const errorMessage = error.response?.data?.detail || 'Fout bij het aanmaken van het event';
@@ -839,7 +839,7 @@ export function CreateEventPage() {
       {/* Navigation Buttons */}
       <div className="flex justify-between">
         <button
-          onClick={() => step === 1 ? navigate('/') : handleBack()}
+          onClick={() => step === 1 ? navigate('/events') : handleBack()}
           className="btn-secondary"
         >
           {step === 1 ? 'Annuleren' : 'Vorige'}

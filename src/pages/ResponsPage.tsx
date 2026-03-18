@@ -4,7 +4,7 @@ const RESPONSE_CONFIG = {
   yes: {
     icon: '✅',
     title: 'Bedankt voor je bevestiging!',
-    detail: 'Je hebt aangegeven beschikbaar te zijn. We nemen contact met je op zodra de planning definitief is.',
+    detail: 'Je hebt aangegeven beschikbaar te zijn. Je ontvangt zo snel mogelijk officieel bericht of je bent ingedeeld.',
     label: 'Beschikbaar',
     color: '#16a34a',
     bg: '#f0fdf4',
@@ -43,73 +43,125 @@ export function ResponsPage() {
   const config = r && RESPONSE_CONFIG[r] ? RESPONSE_CONFIG[r] : null;
 
   return (
-    <div style={{
-      fontFamily: 'Arial, sans-serif',
-      background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)',
-      margin: 0,
-      padding: '20px',
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}>
-      <div style={{
-        background: 'white',
-        borderRadius: 10,
-        padding: 40,
-        maxWidth: 600,
-        width: '100%',
-        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-      }}>
-        {config ? (
-          <>
-            <h1 style={{ color: '#0891b2', marginTop: 0 }}>{config.icon} {config.title}</h1>
-            <p style={{ color: '#374151' }}>{config.detail}</p>
+    <>
+      <style>{`
+        .respons-outer {
+          font-family: Arial, sans-serif;
+          background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+          margin: 0;
+          padding: 20px;
+          min-height: 100vh;
+          display: flex;
+          align-items: flex-start;
+          justify-content: center;
+          padding-top: 40px;
+          padding-bottom: 40px;
+          box-sizing: border-box;
+        }
+        .respons-card {
+          background: white;
+          border-radius: 12px;
+          padding: 40px;
+          max-width: 600px;
+          width: 100%;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .respons-title {
+          color: #0891b2;
+          margin-top: 0;
+          font-size: 22px;
+          line-height: 1.3;
+        }
+        .respons-detail {
+          color: #374151;
+          font-size: 16px;
+          line-height: 1.6;
+        }
+        .respons-row {
+          margin: 10px 0;
+          font-size: 15px;
+          line-height: 1.5;
+        }
+        .respons-footer {
+          color: #64748b;
+          font-size: 14px;
+          margin-top: 28px;
+          line-height: 1.6;
+        }
+        @media (max-width: 480px) {
+          .respons-outer {
+            padding: 12px;
+            padding-top: 20px;
+            padding-bottom: 20px;
+            align-items: flex-start;
+          }
+          .respons-card {
+            padding: 24px 20px;
+            border-radius: 10px;
+          }
+          .respons-title {
+            font-size: 20px;
+          }
+          .respons-detail {
+            font-size: 15px;
+          }
+          .respons-row {
+            font-size: 14px;
+          }
+        }
+      `}</style>
+      <div className="respons-outer">
+        <div className="respons-card">
+          {config ? (
+            <>
+              <h1 className="respons-title">{config.icon} {config.title}</h1>
+              <p className="respons-detail">{config.detail}</p>
 
-            <div style={{
-              background: config.bg,
-              borderLeft: `4px solid ${config.border}`,
-              padding: 15,
-              margin: '20px 0',
-              borderRadius: 4,
-            }}>
-              {eventName && (
-                <div style={{ margin: '8px 0' }}>
-                  <span style={{ fontWeight: 'bold', color: '#0c4a6e' }}>Event:</span> {eventName}
+              <div style={{
+                background: config.bg,
+                borderLeft: `4px solid ${config.border}`,
+                padding: '14px 16px',
+                margin: '20px 0',
+                borderRadius: 4,
+              }}>
+                {eventName && (
+                  <div className="respons-row">
+                    <span style={{ fontWeight: 'bold', color: '#0c4a6e' }}>Event:</span> {eventName}
+                  </div>
+                )}
+                {datum && (
+                  <div className="respons-row">
+                    <span style={{ fontWeight: 'bold', color: '#0c4a6e' }}>Datum:</span> {datum}
+                  </div>
+                )}
+                {rol && (
+                  <div className="respons-row">
+                    <span style={{ fontWeight: 'bold', color: '#0c4a6e' }}>Rol:</span> {rol}
+                  </div>
+                )}
+                <div className="respons-row">
+                  <span style={{ fontWeight: 'bold', color: '#0c4a6e' }}>Je response:</span>{' '}
+                  <strong style={{ color: config.color }}>{config.label}</strong>
                 </div>
-              )}
-              {datum && (
-                <div style={{ margin: '8px 0' }}>
-                  <span style={{ fontWeight: 'bold', color: '#0c4a6e' }}>Datum:</span> {datum}
-                </div>
-              )}
-              {rol && (
-                <div style={{ margin: '8px 0' }}>
-                  <span style={{ fontWeight: 'bold', color: '#0c4a6e' }}>Rol:</span> {rol}
-                </div>
-              )}
-              <div style={{ margin: '8px 0' }}>
-                <span style={{ fontWeight: 'bold', color: '#0c4a6e' }}>Je response:</span>{' '}
-                <strong style={{ color: config.color }}>{config.label}</strong>
+                {r === 'maybe' && note && (
+                  <div className="respons-row">
+                    <span style={{ fontWeight: 'bold', color: '#0c4a6e' }}>Je toelichting:</span> {note}
+                  </div>
+                )}
               </div>
-              {r === 'maybe' && note && (
-                <div style={{ margin: '8px 0' }}>
-                  <span style={{ fontWeight: 'bold', color: '#0c4a6e' }}>Je toelichting:</span> {note}
-                </div>
-              )}
-            </div>
 
-            <p style={{ color: '#64748b', fontSize: 14, marginTop: 30 }}>
-              Je kunt deze pagina nu sluiten. Bij vragen kun je contact opnemen via het opgegeven contactadres.
-            </p>
-          </>
-        ) : (
-          <>
-            <h1 style={{ color: '#dc2626', marginTop: 0 }}>❌ Ongeldige link</h1>
-            <p>Deze pagina kon niet worden geladen. Probeer de link in de e-mail opnieuw te openen.</p>
-          </>
-        )}
+              <p className="respons-footer">
+                Je kunt deze pagina nu sluiten. Bij vragen kun je contact opnemen via het opgegeven contactadres.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 style={{ color: '#dc2626', marginTop: 0, fontSize: 22 }}>❌ Ongeldige link</h1>
+              <p style={{ color: '#374151' }}>Deze pagina kon niet worden geladen. Probeer de link in de e-mail opnieuw te openen.</p>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
