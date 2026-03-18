@@ -16,6 +16,9 @@ import { SettingsPage } from './pages/SettingsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { ResponsPage } from './pages/ResponsPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { InfoPage } from './pages/InfoPage';
+import { DocumentsPage } from './pages/DocumentsPage';
+import { DocViewerPage } from './pages/DocViewerPage';
 
 function App() {
   return (
@@ -24,6 +27,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/respons" element={<ResponsPage />} />
+          <Route path="/doc/:token" element={<DocViewerPage />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<DashboardPage />} />
             <Route path="events" element={<EventsPage />} />
@@ -37,6 +41,8 @@ function App() {
             <Route path="statistics" element={<StatisticsPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="documents" element={<DocumentsPage />} />
+            <Route path="info" element={<InfoPage />} />
           </Route>
         </Routes>
       </AuthProvider>

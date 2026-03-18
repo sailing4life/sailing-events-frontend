@@ -9,7 +9,9 @@ export function Navigation() {
     { path: '/maintenance', label: 'Onderhoud', icon: '🔧' },
     { path: '/statistics', label: 'Statistieken', icon: '📊' },
     { path: '/notifications', label: 'Notificaties', icon: '🔔' },
+    { path: '/documents', label: 'Documenten', icon: '📄' },
     { path: '/settings', label: 'Instellingen', icon: '⚙️' },
+    { path: '/info', label: 'Info', icon: 'ℹ️' },
   ];
 
   return (
