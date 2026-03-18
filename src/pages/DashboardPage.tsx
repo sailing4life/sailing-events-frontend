@@ -85,6 +85,14 @@ export function DashboardPage() {
     (e) => e.workflow_phase === 'invitation' && getPendingInvitations(e.invitations).length > 0
   );
 
+  // Count people (not events) for the summary cards
+  const needsConfirmationCount = needsConfirmation.reduce(
+    (sum, e) => sum + getAvailableUnconfirmed(e.invitations).length, 0
+  );
+  const awaitingResponseCount = awaitingResponse.reduce(
+    (sum, e) => sum + getPendingInvitations(e.invitations).length, 0
+  );
+
   if (loading) {
     return (
       <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>
@@ -105,8 +113,8 @@ export function DashboardPage() {
         {/* Column 1: summary cards stacked */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <SummaryCard icon="📅" value={thisMonthEvents.length} label="Events deze maand" color="#0891b2" bg="#f0f9ff" />
-          <SummaryCard icon="✅" value={needsConfirmation.length} label="Te bevestigen" color="#16a34a" bg="#f0fdf4" highlight={needsConfirmation.length > 0} />
-          <SummaryCard icon="⏳" value={awaitingResponse.length} label="Wacht op reactie" color="#d97706" bg="#fffbeb" />
+          <SummaryCard icon="✅" value={needsConfirmationCount} label="Schippers te bevestigen" color="#16a34a" bg="#f0fdf4" highlight={needsConfirmationCount > 0} />
+          <SummaryCard icon="⏳" value={awaitingResponseCount} label="Openstaande uitvragen" color="#d97706" bg="#fffbeb" />
           <SummaryCard icon="📋" value={futureEvents.length} label="Aankomende events" color="#7c3aed" bg="#faf5ff" />
         </div>
 
