@@ -94,25 +94,29 @@ export function DashboardPage() {
   }
 
   return (
-    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 16px' }}>
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 16px' }}>
       <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0c4a6e', marginBottom: 20 }}>
         Dashboard
       </h1>
 
-      {/* Summary cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 24 }}>
-        <SummaryCard icon="📅" value={thisMonthEvents.length} label="Events deze maand" color="#0891b2" bg="#f0f9ff" />
-        <SummaryCard icon="✅" value={needsConfirmation.length} label="Te bevestigen" color="#16a34a" bg="#f0fdf4" highlight={needsConfirmation.length > 0} />
-        <SummaryCard icon="⏳" value={awaitingResponse.length} label="Wacht op reactie" color="#d97706" bg="#fffbeb" />
-        <SummaryCard icon="📋" value={futureEvents.length} label="Aankomende events" color="#7c3aed" bg="#faf5ff" />
-      </div>
+      {/* 3-column layout: cards | action sections | upcoming events */}
+      <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr 1.6fr', gap: 16, alignItems: 'start' }}>
 
-      {/* Action sections side by side */}
-      {(needsConfirmation.length > 0 || awaitingResponse.length > 0) && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 20 }}>
-          {needsConfirmation.length > 0 && (
-            <Section title="✅ Te bevestigen" accent="#16a34a">
-              <div style={{ maxHeight: 260, overflowY: 'auto' }}>
+        {/* Column 1: summary cards stacked */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <SummaryCard icon="📅" value={thisMonthEvents.length} label="Events deze maand" color="#0891b2" bg="#f0f9ff" />
+          <SummaryCard icon="✅" value={needsConfirmation.length} label="Te bevestigen" color="#16a34a" bg="#f0fdf4" highlight={needsConfirmation.length > 0} />
+          <SummaryCard icon="⏳" value={awaitingResponse.length} label="Wacht op reactie" color="#d97706" bg="#fffbeb" />
+          <SummaryCard icon="📋" value={futureEvents.length} label="Aankomende events" color="#7c3aed" bg="#faf5ff" />
+        </div>
+
+        {/* Column 2: te bevestigen + wacht op reactie */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <Section title="✅ Te bevestigen" accent="#16a34a">
+            {needsConfirmation.length === 0 ? (
+              <p style={{ color: '#94a3b8', padding: '10px 16px', margin: 0, fontSize: 13 }}>Geen acties nodig.</p>
+            ) : (
+              <div style={{ maxHeight: 280, overflowY: 'auto' }}>
                 {needsConfirmation.map((event) => {
                   const available = getAvailableUnconfirmed(event.invitations);
                   return (
@@ -131,12 +135,14 @@ export function DashboardPage() {
                   );
                 })}
               </div>
-            </Section>
-          )}
+            )}
+          </Section>
 
-          {awaitingResponse.length > 0 && (
-            <Section title="⏳ Wacht op reactie" accent="#d97706">
-              <div style={{ maxHeight: 260, overflowY: 'auto' }}>
+          <Section title="⏳ Wacht op reactie" accent="#d97706">
+            {awaitingResponse.length === 0 ? (
+              <p style={{ color: '#94a3b8', padding: '10px 16px', margin: 0, fontSize: 13 }}>Geen openstaande uitvragen.</p>
+            ) : (
+              <div style={{ maxHeight: 280, overflowY: 'auto' }}>
                 {awaitingResponse.map((event) => {
                   const pending = getPendingInvitations(event.invitations);
                   return (
@@ -155,40 +161,41 @@ export function DashboardPage() {
                   );
                 })}
               </div>
-            </Section>
-          )}
-        </div>
-      )}
-
-      {/* Upcoming events — compact, max 6 rows */}
-      <Section title="📅 Aankomende events" accent="#0891b2">
-        {futureEvents.length === 0 ? (
-          <p style={{ color: '#94a3b8', padding: '12px 20px', margin: 0 }}>Geen aankomende events.</p>
-        ) : (
-          <>
-            <div style={{ maxHeight: 320, overflowY: 'auto' }}>
-              {futureEvents.slice(0, 8).map((event) => (
-                <EventRow key={event.id} event={event}>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 3 }}>
-                    <PhaseChip phase={event.workflow_phase} />
-                    {event.invitations.length > 0 && (
-                      <span style={{ fontSize: 12, color: '#64748b' }}>
-                        {event.invitations.filter((i) => i.status === 'confirmed').length}/{event.invitations.length} bevestigd
-                      </span>
-                    )}
-                  </div>
-                </EventRow>
-              ))}
-            </div>
-            {futureEvents.length > 8 && (
-              <div style={{ padding: '10px 20px', borderTop: '1px solid #f1f5f9', fontSize: 13, color: '#64748b' }}>
-                + {futureEvents.length - 8} meer —{' '}
-                <Link to="/events" style={{ color: '#0891b2' }}>Bekijk alle events →</Link>
-              </div>
             )}
-          </>
-        )}
-      </Section>
+          </Section>
+        </div>
+
+        {/* Column 3: upcoming events */}
+        <Section title="📅 Aankomende events" accent="#0891b2">
+          {futureEvents.length === 0 ? (
+            <p style={{ color: '#94a3b8', padding: '12px 16px', margin: 0, fontSize: 13 }}>Geen aankomende events.</p>
+          ) : (
+            <>
+              <div style={{ maxHeight: 560, overflowY: 'auto' }}>
+                {futureEvents.slice(0, 12).map((event) => (
+                  <EventRow key={event.id} event={event}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 3 }}>
+                      <PhaseChip phase={event.workflow_phase} />
+                      {event.invitations.length > 0 && (
+                        <span style={{ fontSize: 12, color: '#64748b' }}>
+                          {event.invitations.filter((i) => i.status === 'confirmed').length}/{event.invitations.length} bevestigd
+                        </span>
+                      )}
+                    </div>
+                  </EventRow>
+                ))}
+              </div>
+              {futureEvents.length > 12 && (
+                <div style={{ padding: '10px 16px', borderTop: '1px solid #f1f5f9', fontSize: 13, color: '#64748b' }}>
+                  + {futureEvents.length - 12} meer —{' '}
+                  <Link to="/events" style={{ color: '#0891b2' }}>Bekijk alle events →</Link>
+                </div>
+              )}
+            </>
+          )}
+        </Section>
+
+      </div>
     </div>
   );
 }
