@@ -85,7 +85,7 @@ export interface EventTypeConfig {
 
 export interface HistoricalBoatAssignmentInput {
   boat_id: number;
-  skipper_id: number;
+  skipper_id?: number | undefined;
 }
 
 export interface HistoricalEventCreateInput {

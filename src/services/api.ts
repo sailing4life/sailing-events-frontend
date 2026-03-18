@@ -384,8 +384,8 @@ export const settingsApi = {
 
 // Invitations API
 export const invitationsApi = {
-  confirm: async (invitationId: number): Promise<{ success: boolean; message: string }> => {
-    const response = await api.post(`/api/invitations/${invitationId}/confirm`);
+  confirm: async (invitationId: number, rate?: number): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post(`/api/invitations/${invitationId}/confirm`, rate !== undefined ? { rate } : {});
     return response.data;
   },
   sendReminder: async (invitationId: number): Promise<{ message: string; sent: number; failed: number }> => {
