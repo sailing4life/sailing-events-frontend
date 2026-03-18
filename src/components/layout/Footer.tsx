@@ -1,5 +1,5 @@
 export function Footer() {
-  const version = "0.1.6";
+  const version = "1.0.1";
   const currentYear = new Date().getFullYear();
 
   return (
