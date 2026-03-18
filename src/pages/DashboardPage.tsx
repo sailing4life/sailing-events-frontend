@@ -71,6 +71,12 @@ export function DashboardPage() {
     .filter((e) => new Date(e.event_date + 'T00:00:00') >= today)
     .sort((a, b) => a.event_date.localeCompare(b.event_date));
 
+  // All events this month (past + future)
+  const thisMonthEvents = events.filter((e) => {
+    const d = new Date(e.event_date + 'T00:00:00');
+    return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+  });
+
   const needsConfirmation = futureEvents.filter(
     (e) => e.workflow_phase === 'invitation' && getAvailableUnconfirmed(e.invitations).length > 0
   );
@@ -78,11 +84,6 @@ export function DashboardPage() {
   const awaitingResponse = futureEvents.filter(
     (e) => e.workflow_phase === 'invitation' && getPendingInvitations(e.invitations).length > 0
   );
-
-  const thisMonthEvents = futureEvents.filter((e) => {
-    const d = new Date(e.event_date + 'T00:00:00');
-    return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
-  });
 
   if (loading) {
     return (
@@ -93,113 +94,99 @@ export function DashboardPage() {
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px' }}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, color: '#0c4a6e', marginBottom: 24 }}>
+    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 16px' }}>
+      <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0c4a6e', marginBottom: 20 }}>
         Dashboard
       </h1>
 
       {/* Summary cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 32 }}>
-        <SummaryCard
-          icon="📅"
-          value={thisMonthEvents.length}
-          label="Events deze maand"
-          color="#0891b2"
-          bg="#f0f9ff"
-        />
-        <SummaryCard
-          icon="✅"
-          value={needsConfirmation.length}
-          label="Te bevestigen"
-          color="#16a34a"
-          bg="#f0fdf4"
-          highlight={needsConfirmation.length > 0}
-        />
-        <SummaryCard
-          icon="⏳"
-          value={awaitingResponse.length}
-          label="Wacht op reactie"
-          color="#d97706"
-          bg="#fffbeb"
-        />
-        <SummaryCard
-          icon="📋"
-          value={futureEvents.length}
-          label="Aankomende events"
-          color="#7c3aed"
-          bg="#faf5ff"
-        />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 24 }}>
+        <SummaryCard icon="📅" value={thisMonthEvents.length} label="Events deze maand" color="#0891b2" bg="#f0f9ff" />
+        <SummaryCard icon="✅" value={needsConfirmation.length} label="Te bevestigen" color="#16a34a" bg="#f0fdf4" highlight={needsConfirmation.length > 0} />
+        <SummaryCard icon="⏳" value={awaitingResponse.length} label="Wacht op reactie" color="#d97706" bg="#fffbeb" />
+        <SummaryCard icon="📋" value={futureEvents.length} label="Aankomende events" color="#7c3aed" bg="#faf5ff" />
       </div>
 
-      {/* Needs confirmation */}
-      {needsConfirmation.length > 0 && (
-        <Section title="✅ Actie vereist – beschikbaar maar nog niet bevestigd" accent="#16a34a">
-          {needsConfirmation.map((event) => {
-            const available = getAvailableUnconfirmed(event.invitations);
-            return (
-              <EventRow key={event.id} event={event}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-                  {available.map((inv) => (
-                    <StatusBadge
-                      key={inv.id}
-                      label={`${inv.skipper.first_name} ${inv.skipper.last_name} (${ROLE_LABEL[inv.role] ?? inv.role})`}
-                      color="#15803d"
-                      bg="#dcfce7"
-                    />
-                  ))}
-                </div>
-              </EventRow>
-            );
-          })}
-        </Section>
+      {/* Action sections side by side */}
+      {(needsConfirmation.length > 0 || awaitingResponse.length > 0) && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 20 }}>
+          {needsConfirmation.length > 0 && (
+            <Section title="✅ Te bevestigen" accent="#16a34a">
+              <div style={{ maxHeight: 260, overflowY: 'auto' }}>
+                {needsConfirmation.map((event) => {
+                  const available = getAvailableUnconfirmed(event.invitations);
+                  return (
+                    <EventRow key={event.id} event={event}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                        {available.map((inv) => (
+                          <StatusBadge
+                            key={inv.id}
+                            label={`${inv.skipper.first_name} ${inv.skipper.last_name} (${ROLE_LABEL[inv.role] ?? inv.role})`}
+                            color="#15803d"
+                            bg="#dcfce7"
+                          />
+                        ))}
+                      </div>
+                    </EventRow>
+                  );
+                })}
+              </div>
+            </Section>
+          )}
+
+          {awaitingResponse.length > 0 && (
+            <Section title="⏳ Wacht op reactie" accent="#d97706">
+              <div style={{ maxHeight: 260, overflowY: 'auto' }}>
+                {awaitingResponse.map((event) => {
+                  const pending = getPendingInvitations(event.invitations);
+                  return (
+                    <EventRow key={event.id} event={event}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                        {pending.map((inv) => (
+                          <StatusBadge
+                            key={inv.id}
+                            label={`${inv.skipper.first_name} ${inv.skipper.last_name}`}
+                            color="#92400e"
+                            bg="#fef3c7"
+                          />
+                        ))}
+                      </div>
+                    </EventRow>
+                  );
+                })}
+              </div>
+            </Section>
+          )}
+        </div>
       )}
 
-      {/* Awaiting response */}
-      {awaitingResponse.length > 0 && (
-        <Section title="⏳ Wacht op reactie van schippers" accent="#d97706">
-          {awaitingResponse.map((event) => {
-            const pending = getPendingInvitations(event.invitations);
-            return (
-              <EventRow key={event.id} event={event}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-                  {pending.map((inv) => (
-                    <StatusBadge
-                      key={inv.id}
-                      label={`${inv.skipper.first_name} ${inv.skipper.last_name}`}
-                      color="#92400e"
-                      bg="#fef3c7"
-                    />
-                  ))}
-                </div>
-              </EventRow>
-            );
-          })}
-        </Section>
-      )}
-
-      {/* Upcoming events */}
+      {/* Upcoming events — compact, max 6 rows */}
       <Section title="📅 Aankomende events" accent="#0891b2">
         {futureEvents.length === 0 ? (
-          <p style={{ color: '#94a3b8', padding: '12px 0' }}>Geen aankomende events.</p>
+          <p style={{ color: '#94a3b8', padding: '12px 20px', margin: 0 }}>Geen aankomende events.</p>
         ) : (
-          futureEvents.slice(0, 10).map((event) => (
-            <EventRow key={event.id} event={event}>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
-                <PhaseChip phase={event.workflow_phase} />
-                {event.invitations.length > 0 && (
-                  <span style={{ fontSize: 12, color: '#64748b' }}>
-                    {event.invitations.filter((i) => i.status === 'confirmed').length}/{event.invitations.length} bevestigd
-                  </span>
-                )}
+          <>
+            <div style={{ maxHeight: 320, overflowY: 'auto' }}>
+              {futureEvents.slice(0, 8).map((event) => (
+                <EventRow key={event.id} event={event}>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 3 }}>
+                    <PhaseChip phase={event.workflow_phase} />
+                    {event.invitations.length > 0 && (
+                      <span style={{ fontSize: 12, color: '#64748b' }}>
+                        {event.invitations.filter((i) => i.status === 'confirmed').length}/{event.invitations.length} bevestigd
+                      </span>
+                    )}
+                  </div>
+                </EventRow>
+              ))}
+            </div>
+            {futureEvents.length > 8 && (
+              <div style={{ padding: '10px 20px', borderTop: '1px solid #f1f5f9', fontSize: 13, color: '#64748b' }}>
+                + {futureEvents.length - 8} meer —{' '}
+                <Link to="/events" style={{ color: '#0891b2' }}>Bekijk alle events →</Link>
               </div>
-            </EventRow>
-          ))
-        )}
-        {futureEvents.length > 10 && (
-          <div style={{ padding: '8px 0', color: '#64748b', fontSize: 14 }}>
-            + {futureEvents.length - 10} meer{' '}
-            <Link to="/" style={{ color: '#0891b2' }}>Bekijk alle events →</Link>
-          </div>
+            )}
+          </>
         )}
       </Section>
     </div>
@@ -221,12 +208,12 @@ function SummaryCard({
       background: bg,
       border: `1px solid ${highlight ? color : 'transparent'}`,
       borderRadius: 10,
-      padding: '16px 20px',
+      padding: '14px 18px',
       boxShadow: highlight ? `0 0 0 2px ${color}22` : '0 1px 4px rgba(0,0,0,0.06)',
     }}>
-      <div style={{ fontSize: 28, marginBottom: 4 }}>{icon}</div>
-      <div style={{ fontSize: 28, fontWeight: 700, color, lineHeight: 1 }}>{value}</div>
-      <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>{label}</div>
+      <div style={{ fontSize: 24, marginBottom: 2 }}>{icon}</div>
+      <div style={{ fontSize: 26, fontWeight: 700, color, lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>{label}</div>
     </div>
   );
 }
@@ -240,7 +227,6 @@ function Section({
 }) {
   return (
     <div style={{
-      marginBottom: 28,
       background: 'white',
       borderRadius: 10,
       border: '1px solid #e2e8f0',
@@ -249,18 +235,16 @@ function Section({
     }}>
       <div style={{
         borderLeft: `4px solid ${accent}`,
-        padding: '14px 20px',
+        padding: '12px 20px',
         background: '#f8fafc',
         borderBottom: '1px solid #e2e8f0',
         fontWeight: 600,
-        fontSize: 15,
+        fontSize: 14,
         color: '#1e293b',
       }}>
         {title}
       </div>
-      <div style={{ padding: '4px 0' }}>
-        {children}
-      </div>
+      {children}
     </div>
   );
 }
@@ -272,20 +256,17 @@ function EventRow({ event, children }: { event: Event; children?: React.ReactNod
       to={`/events/${event.id}`}
       style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
     >
-      <div style={{
-        padding: '12px 20px',
-        borderBottom: '1px solid #f1f5f9',
-        transition: 'background 0.1s',
-      }}
+      <div
+        style={{ padding: '10px 20px', borderBottom: '1px solid #f1f5f9', transition: 'background 0.1s' }}
         onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
         onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 600, color: '#1e293b', fontSize: 15 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 600, color: '#1e293b', fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {event.event_name}
             </div>
-            <div style={{ color: '#64748b', fontSize: 13, marginTop: 2 }}>
+            <div style={{ color: '#64748b', fontSize: 12, marginTop: 1 }}>
               {event.company_name} · {formatDate(event.event_date)} · {DURATION_LABEL[event.duration] ?? event.duration}
             </div>
           </div>
@@ -298,11 +279,11 @@ function EventRow({ event, children }: { event: Event; children?: React.ReactNod
 }
 
 function DaysBadge({ days }: { days: number }) {
-  if (days === 0) return <span style={{ fontSize: 12, fontWeight: 600, color: '#dc2626', background: '#fef2f2', padding: '2px 8px', borderRadius: 10 }}>Vandaag</span>;
-  if (days === 1) return <span style={{ fontSize: 12, fontWeight: 600, color: '#d97706', background: '#fffbeb', padding: '2px 8px', borderRadius: 10 }}>Morgen</span>;
-  if (days <= 7) return <span style={{ fontSize: 12, fontWeight: 600, color: '#d97706', background: '#fffbeb', padding: '2px 8px', borderRadius: 10 }}>over {days} d</span>;
-  if (days <= 30) return <span style={{ fontSize: 12, color: '#64748b', background: '#f1f5f9', padding: '2px 8px', borderRadius: 10 }}>over {days} d</span>;
-  return <span style={{ fontSize: 12, color: '#94a3b8', background: '#f8fafc', padding: '2px 8px', borderRadius: 10 }}>over {days} d</span>;
+  if (days === 0) return <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 600, color: '#dc2626', background: '#fef2f2', padding: '2px 7px', borderRadius: 10 }}>Vandaag</span>;
+  if (days === 1) return <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 600, color: '#d97706', background: '#fffbeb', padding: '2px 7px', borderRadius: 10 }}>Morgen</span>;
+  if (days <= 7) return <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 600, color: '#d97706', background: '#fffbeb', padding: '2px 7px', borderRadius: 10 }}>over {days} d</span>;
+  if (days <= 30) return <span style={{ flexShrink: 0, fontSize: 11, color: '#64748b', background: '#f1f5f9', padding: '2px 7px', borderRadius: 10 }}>over {days} d</span>;
+  return <span style={{ flexShrink: 0, fontSize: 11, color: '#94a3b8', background: '#f8fafc', padding: '2px 7px', borderRadius: 10 }}>over {days} d</span>;
 }
 
 function PhaseChip({ phase }: { phase: string }) {
