@@ -12,6 +12,7 @@ export function BoatsPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedBoat, setSelectedBoat] = useState<Boat | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [createFormData, setCreateFormData] = useState({
     name: '',
     capacity: 12,
@@ -107,8 +108,8 @@ export function BoatsPage() {
 
       {/* Search */}
       {boats.length > 0 && (
-        <div className="mb-6">
-          <div className="relative max-w-md">
+        <div className="mb-6 flex gap-3 items-center">
+          <div className="relative max-w-md flex-1">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -120,6 +121,27 @@ export function BoatsPage() {
               className="input pl-10 w-full"
             />
           </div>
+          {/* View toggle */}
+          <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+            <button
+              onClick={() => setViewMode('cards')}
+              className={`px-3 py-2 transition-colors ${viewMode === 'cards' ? 'bg-cyan-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+              title="Kaart weergave"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-2 transition-colors ${viewMode === 'list' ? 'bg-cyan-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+              title="Lijst weergave"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
         </div>
       )}
 
@@ -127,6 +149,55 @@ export function BoatsPage() {
         <div className="text-center py-12 card">
           <p className="text-gray-600 mb-4">Nog geen boten in de database</p>
           <p className="text-sm text-gray-500">Gebruik de Excel import op de Schippers pagina om boten toe te voegen</p>
+        </div>
+      ) : viewMode === 'list' ? (
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Naam</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Type</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Eigendom</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Status</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">Acties</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-100">
+              {boats
+                .filter((b) => {
+                  const query = searchQuery.toLowerCase();
+                  return !query || b.name.toLowerCase().includes(query) || b.boat_type.toLowerCase().includes(query);
+                })
+                .map((boat) => (
+                  <tr key={boat.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 font-medium text-gray-900">{boat.name}</td>
+                    <td className="px-4 py-3 text-gray-700">{boat.boat_type}</td>
+                    <td className="px-4 py-3 text-gray-700">{boat.intern_extern}</td>
+                    <td className="px-4 py-3">
+                      <span className={`badge ${boat.is_active ? 'badge-yes' : 'bg-gray-200 text-gray-600'}`}>
+                        {boat.is_active ? 'Beschikbaar' : 'Niet beschikbaar'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => handleOpenEdit(boat)}
+                          className="text-cyan-600 hover:text-cyan-700 text-sm font-medium"
+                        >
+                          Onderhoud
+                        </button>
+                        <button
+                          onClick={() => toggleAvailability(boat.id)}
+                          className="text-gray-500 hover:text-gray-700 text-sm font-medium"
+                        >
+                          {boat.is_active ? 'Deactiveren' : 'Activeren'}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

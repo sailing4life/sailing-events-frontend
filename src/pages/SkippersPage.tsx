@@ -16,6 +16,7 @@ export function SkippersPage() {
   const [selectedSkipper, setSelectedSkipper] = useState<Skipper | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'skipper' | 'coach' | 'race_director'>('all');
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [createFormData, setCreateFormData] = useState({
     first_name: '',
     last_name: '',
@@ -196,7 +197,28 @@ export function SkippersPage() {
             className="input pl-10 w-full"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {/* View toggle */}
+          <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+            <button
+              onClick={() => setViewMode('cards')}
+              className={`px-3 py-2 transition-colors ${viewMode === 'cards' ? 'bg-cyan-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+              title="Kaart weergave"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-2 transition-colors ${viewMode === 'list' ? 'bg-cyan-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+              title="Lijst weergave"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
           {([
             { key: 'all', label: 'Alle' },
             { key: 'skipper', label: 'Schippers' },
@@ -223,22 +245,73 @@ export function SkippersPage() {
           <p className="text-gray-600 mb-4">Nog geen schippers in de database</p>
           <p className="text-sm text-gray-500">Upload een Excel bestand om schippers toe te voegen</p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {skippers
-            .filter((s) => {
-              const query = searchQuery.toLowerCase();
-              const matchesSearch = !query ||
-                `${s.first_name} ${s.last_name}`.toLowerCase().includes(query) ||
-                s.email.toLowerCase().includes(query) ||
-                s.phone.includes(query);
-              const matchesRole = roleFilter === 'all' ||
-                (roleFilter === 'skipper' && s.is_skipper) ||
-                (roleFilter === 'coach' && s.is_coach) ||
-                (roleFilter === 'race_director' && s.is_race_director);
-              return matchesSearch && matchesRole;
-            })
-            .map((skipper) => (
+      ) : (() => {
+        const filtered = skippers.filter((s) => {
+          const query = searchQuery.toLowerCase();
+          const matchesSearch = !query ||
+            `${s.first_name} ${s.last_name}`.toLowerCase().includes(query) ||
+            s.email.toLowerCase().includes(query) ||
+            s.phone.includes(query);
+          const matchesRole = roleFilter === 'all' ||
+            (roleFilter === 'skipper' && s.is_skipper) ||
+            (roleFilter === 'coach' && s.is_coach) ||
+            (roleFilter === 'race_director' && s.is_race_director);
+          return matchesSearch && matchesRole;
+        });
+
+        if (viewMode === 'list') {
+          return (
+            <div className="overflow-x-auto rounded-lg border border-gray-200">
+              <table className="min-w-full divide-y divide-gray-200 text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-medium text-gray-500">Naam</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-500">Email</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-500">Telefoon</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-500">Rollen</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-500">Tarief (dag)</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-500">Status</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-500">Acties</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {filtered.map((skipper) => (
+                    <tr key={skipper.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium text-gray-900">
+                        {skipper.first_name} {skipper.last_name}
+                      </td>
+                      <td className="px-4 py-3 text-gray-700">{skipper.email}</td>
+                      <td className="px-4 py-3 text-gray-700">{skipper.phone}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-1">
+                          {skipper.is_skipper && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-cyan-100 text-cyan-800">Schipper</span>}
+                          {skipper.is_coach && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Coach</span>}
+                          {skipper.is_race_director && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">Wedstrijdleider</span>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-gray-700">€{skipper.full_day_rate}</td>
+                      <td className="px-4 py-3">
+                        <span className={`badge ${skipper.is_active ? 'badge-yes' : 'bg-gray-200 text-gray-600'}`}>
+                          {skipper.is_active ? 'Actief' : 'Inactief'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-3">
+                          <button onClick={() => handleOpenDetails(skipper)} className="text-cyan-600 hover:text-cyan-700 text-sm font-medium">Details</button>
+                          <button onClick={() => handleOpenEditModal(skipper)} className="text-blue-600 hover:text-blue-700 text-sm font-medium">✏️</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        }
+
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map((skipper) => (
           <div key={skipper.id} className="card">
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -309,8 +382,9 @@ export function SkippersPage() {
             )}
           </div>
         ))}
-        </div>
-      )}
+          </div>
+        );
+      })()}
 
       {/* Create Modal */}
       {showCreateModal && (
