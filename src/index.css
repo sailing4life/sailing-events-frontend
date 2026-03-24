@@ -34,7 +34,7 @@
   }
 
   .badge-pending {
-    @apply bg-red-100 text-red-800;
+    @apply bg-purple-100 text-purple-800;
   }
 
   .badge-available {
