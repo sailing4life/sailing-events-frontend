@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { eventsApi, eventTypesApi } from '../services/api';
-import type { Event, EventTypeConfig } from '../types';
+import { eventsApi, eventTypesApi, boatsApi } from '../services/api';
+import type { Event, EventTypeConfig, Boat } from '../types';
 import { toast } from 'sonner';
 
 interface EventFormData {
@@ -22,6 +22,8 @@ export function EditEventPage() {
   const [submitting, setSubmitting] = useState(false);
   const [event, setEvent] = useState<Event | null>(null);
   const [eventTypes, setEventTypes] = useState<EventTypeConfig[]>([]);
+  const [boats, setBoats] = useState<Boat[]>([]);
+  const [selectedBoatIds, setSelectedBoatIds] = useState<number[]>([]);
   const [formData, setFormData] = useState<EventFormData>({
     event_name: '',
     company_name: '',
@@ -34,28 +36,35 @@ export function EditEventPage() {
   });
 
   useEffect(() => {
-    loadEvent();
-    loadEventTypes();
+    loadAll();
   }, [id]);
 
-  const loadEvent = async () => {
+  const loadAll = async () => {
     if (!id) return;
-
     try {
-      const data = await eventsApi.getById(parseInt(id));
-      setEvent(data);
+      const [eventData, eventTypesData, boatsData] = await Promise.all([
+        eventsApi.getById(parseInt(id)),
+        eventTypesApi.getAll(),
+        boatsApi.getAll(),
+      ]);
 
-      // Pre-fill form with existing data
+      setEvent(eventData);
+      setEventTypes(eventTypesData);
+      setBoats(boatsData.filter(b => b.is_active));
+
       setFormData({
-        event_name: data.event_name,
-        company_name: data.company_name,
-        event_date: data.event_date,
-        duration: data.duration,
-        event_type: data.event_type,
-        notes: data.notes || '',
-        required_race_directors: data.required_race_directors || 0,
-        required_coaches: data.required_coaches || 0,
+        event_name: eventData.event_name,
+        company_name: eventData.company_name,
+        event_date: eventData.event_date,
+        duration: eventData.duration,
+        event_type: eventData.event_type,
+        notes: eventData.notes || '',
+        required_race_directors: eventData.required_race_directors || 0,
+        required_coaches: eventData.required_coaches || 0,
       });
+
+      // Pre-select current boats
+      setSelectedBoatIds(eventData.event_boats.map((eb: any) => eb.boat.id));
     } catch (error) {
       console.error('Error loading event:', error);
       toast.error('Fout bij het laden van het event');
@@ -65,19 +74,20 @@ export function EditEventPage() {
     }
   };
 
-  const loadEventTypes = async () => {
-    try {
-      const data = await eventTypesApi.getAll();
-      setEventTypes(data);
-    } catch (error) {
-      console.error('Error loading event types:', error);
-    }
+  const toggleBoat = (boatId: number) => {
+    setSelectedBoatIds(prev =>
+      prev.includes(boatId) ? prev.filter(id => id !== boatId) : [...prev, boatId]
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!id) return;
+
+    if (selectedBoatIds.length === 0) {
+      toast.error('Selecteer minimaal één boot');
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -90,6 +100,7 @@ export function EditEventPage() {
         notes: formData.notes || undefined,
         required_race_directors: formData.required_race_directors,
         required_coaches: formData.required_coaches,
+        boat_ids: selectedBoatIds,
       });
 
       toast.success('Event succesvol bijgewerkt!');
@@ -120,63 +131,48 @@ export function EditEventPage() {
     return (
       <div className="text-center py-12">
         <h2 className="text-2xl font-semibold text-gray-900 mb-2">Event niet gevonden</h2>
-        <Link to="/" className="text-cyan-600 hover:text-cyan-700">
-          Terug naar overzicht
-        </Link>
+        <Link to="/" className="text-cyan-600 hover:text-cyan-700">Terug naar overzicht</Link>
       </div>
     );
   }
 
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Header */}
       <div className="mb-8">
         <Link to={`/events/${id}`} className="text-cyan-600 hover:text-cyan-700 text-sm mb-2 inline-block">
           ← Terug naar event details
         </Link>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Event Bewerken</h1>
-        <p className="text-gray-600">Wijzig de details van het event (boten en schippers kunnen niet gewijzigd worden)</p>
       </div>
 
-      {/* Form */}
       <form onSubmit={handleSubmit} className="card">
         <div className="space-y-6">
-          {/* Event Name */}
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Event Naam *
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Event Naam *</label>
             <input
               type="text"
               required
               value={formData.event_name}
               onChange={(e) => setFormData({ ...formData, event_name: e.target.value })}
               className="input-field"
-              placeholder="Bijv. Teambuilding Zomerdag"
             />
           </div>
 
-          {/* Company Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Bedrijfsnaam *
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Bedrijfsnaam *</label>
             <input
               type="text"
               required
               value={formData.company_name}
               onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
               className="input-field"
-              placeholder="Bijv. Acme Corporation"
             />
           </div>
 
-          {/* Date and Duration */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Datum *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Datum *</label>
               <input
                 type="date"
                 required
@@ -186,15 +182,13 @@ export function EditEventPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Duur *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Duur *</label>
               <select
                 value={formData.duration}
                 onChange={(e) => setFormData({ ...formData, duration: e.target.value as any })}
                 className="input-field"
               >
-                <option value="">-- Selecteer duur --</option>
+                <option value="half_day">🕐 Halve dag</option>
                 <option value="morning">☀️ Ochtend</option>
                 <option value="afternoon">🌅 Middag</option>
                 <option value="full_day">📅 Hele dag</option>
@@ -202,133 +196,84 @@ export function EditEventPage() {
             </div>
           </div>
 
-          {/* Event Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Type Event *
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Type Event *</label>
             <select
               value={formData.event_type}
               onChange={(e) => setFormData({ ...formData, event_type: e.target.value })}
               className="input-field"
             >
-              {eventTypes.length === 0 ? (
-                <option value="" disabled>Geen types beschikbaar</option>
-              ) : (
-                eventTypes.map((type) => (
-                  <option key={type.code} value={type.code}>
-                    {type.label}
-                  </option>
-                ))
-              )}
+              {eventTypes.map((type) => (
+                <option key={type.code} value={type.code}>{type.label}</option>
+              ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Wedstrijdleiding nodig
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Wedstrijdleiding nodig</label>
             <input
               type="number"
               min="0"
               value={formData.required_race_directors}
-              onChange={(e) => setFormData({
-                ...formData,
-                required_race_directors: Math.max(0, parseInt(e.target.value, 10) || 0)
-              })}
+              onChange={(e) => setFormData({ ...formData, required_race_directors: Math.max(0, parseInt(e.target.value, 10) || 0) })}
               className="input-field"
             />
           </div>
 
           {formData.event_type === 'coaching' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Coaches nodig
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Coaches nodig</label>
               <input
                 type="number"
                 min="0"
                 value={formData.required_coaches}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  required_coaches: Math.max(0, parseInt(e.target.value, 10) || 0)
-                })}
+                onChange={(e) => setFormData({ ...formData, required_coaches: Math.max(0, parseInt(e.target.value, 10) || 0) })}
                 className="input-field"
               />
             </div>
           )}
 
-          {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notities (optioneel)
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Notities (optioneel)</label>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="input-field"
               rows={4}
-              placeholder="Extra informatie over het event..."
             />
           </div>
 
-          {/* Boat/Skipper Notice */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start">
-              <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div>
-                <p className="text-sm font-medium text-blue-900">Let op</p>
-                <p className="text-sm text-blue-700 mt-1">
-                  De toegewezen boten en schippers kunnen niet worden gewijzigd nadat het event is aangemaakt.
-                  Als je de boot- of schippertoewijzingen wilt wijzigen, maak dan een nieuw event aan.
-                </p>
-              </div>
+          {/* Boat selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Boten * <span className="text-gray-500 font-normal">({selectedBoatIds.length} geselecteerd)</span>
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {boats.map((boat) => {
+                const selected = selectedBoatIds.includes(boat.id);
+                return (
+                  <button
+                    key={boat.id}
+                    type="button"
+                    onClick={() => toggleBoat(boat.id)}
+                    className={`p-3 rounded-lg border-2 text-left transition-colors ${
+                      selected
+                        ? 'border-cyan-500 bg-cyan-50 text-cyan-900'
+                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="font-medium">⛵ {boat.name}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">{boat.boat_type} · {boat.capacity} pers.</div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Current Boat/Skipper Assignments */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-3">Huidige Toewijzingen</h3>
-            <div className="space-y-2">
-              {event.event_boats.map((eventBoat) => (
-                <div key={eventBoat.id} className="bg-gray-50 rounded-lg p-3 flex justify-between items-center">
-                  <div>
-                    <p className="font-medium text-gray-900">⛵ {eventBoat.boat.name}</p>
-                    {eventBoat.skipper && (
-                      <p className="text-sm text-gray-600">
-                        {eventBoat.skipper.first_name} {eventBoat.skipper.last_name}
-                      </p>
-                    )}
-                  </div>
-                  <span className={`badge ${
-                    eventBoat.response_status === 'yes' ? 'badge-yes' :
-                    eventBoat.response_status === 'no' ? 'badge-no' :
-                    eventBoat.response_status === 'maybe' ? 'badge-maybe' :
-                    'badge-pending'
-                  }`}>
-                    {
-                      eventBoat.response_status === 'yes' ? '✓ Bevestigd' :
-                      eventBoat.response_status === 'no' ? '✗ Afgewezen' :
-                      eventBoat.response_status === 'maybe' ? '? Misschien' :
-                      '⏳ Wachtend'
-                    }
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex gap-3 mt-8 pt-6 border-t">
-          <Link
-            to={`/events/${id}`}
-            className="btn-secondary flex-1"
-          >
-            Annuleren
-          </Link>
+          <Link to={`/events/${id}`} className="btn-secondary flex-1">Annuleren</Link>
           <button
             type="submit"
             disabled={submitting}
