@@ -96,7 +96,12 @@ export function EditEventPage() {
       navigate(`/events/${id}`);
     } catch (error: any) {
       console.error('Error updating event:', error);
-      const errorMessage = error.response?.data?.detail || 'Fout bij het bijwerken van het event';
+      const detail = error.response?.data?.detail;
+      const errorMessage = typeof detail === 'string'
+        ? detail
+        : Array.isArray(detail)
+          ? detail.map((e: any) => e.msg || JSON.stringify(e)).join('; ')
+          : 'Fout bij het bijwerken van het event';
       toast.error(errorMessage);
     } finally {
       setSubmitting(false);
