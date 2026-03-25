@@ -38,7 +38,7 @@
   }
 
   .badge-available {
-    @apply bg-orange-100 text-orange-800;
+    @apply bg-yellow-100 text-yellow-800;
   }
 
   .badge-yes {

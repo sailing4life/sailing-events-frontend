@@ -15,7 +15,7 @@ const getInvitationStatusBadge = (status: InvitationStatus, isFinalized = false)
   }
   const badges = {
     pending: { class: 'badge-pending', label: 'Wachtend', icon: '⏳' },
-    available: { class: 'badge-yes', label: 'Beschikbaar', icon: '✓' },
+    available: { class: 'badge-available', label: 'Beschikbaar', icon: '✓' },
     unavailable: { class: 'badge-no', label: 'Niet beschikbaar', icon: '✗' },
     maybe: { class: 'badge-maybe', label: 'Misschien', icon: '?' },
     confirmed: { class: 'badge-yes', label: 'Bevestigd', icon: '✓✓' },
