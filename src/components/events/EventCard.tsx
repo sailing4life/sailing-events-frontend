@@ -31,7 +31,7 @@ const getInvitationStatusBadge = (status: InvitationStatus, isFinalized = false)
 
   const badges = {
     pending: 'badge-pending',
-    available: 'badge-yes',
+    available: 'badge-available',
     unavailable: 'badge-no',
     maybe: 'badge-maybe',
     confirmed: 'badge-yes',

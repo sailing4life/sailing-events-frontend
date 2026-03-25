@@ -328,29 +328,48 @@ export function EventDetailPage() {
   };
 
   const handleDirectConfirm = async (assignments: Array<{ skipper_id: number; role: string }>) => {
-    if (!id) return;
+    if (!id || !event) return;
 
-    setActionLoading(true);
-    try {
-      const result = await eventsApi.confirmDirect(parseInt(id), assignments);
+    const isHalfDay = ['half_day', 'morning', 'afternoon'].includes(event.duration);
 
-      // Show success message with details
-      const emailInfo = result.emails_failed > 0
-        ? ` (${result.emails_sent} email(s) verstuurd, ${result.emails_failed} mislukt)`
-        : '';
-      toast.success(`${result.message}${emailInfo}`);
+    const participants = assignments.map(a => {
+      const skipper = skippers.find(s => s.id === a.skipper_id);
+      return {
+        invitationId: a.skipper_id,
+        name: skipper ? `${skipper.first_name} ${skipper.last_name}` : `Schipper #${a.skipper_id}`,
+        role: a.role,
+        rate: skipper ? (isHalfDay ? skipper.half_day_rate : skipper.full_day_rate) : 0,
+      };
+    });
 
-      // Reload event data to show updated invitations
-      await loadEvent();
-
-      setDirectConfirmModalOpen(false);
-    } catch (error: any) {
-      console.error('Error confirming skippers:', error);
-      const errorMessage = error.response?.data?.detail || 'Fout bij het bevestigen van schippers';
-      toast.error(errorMessage);
-    } finally {
-      setActionLoading(false);
-    }
+    setRateModal({
+      participants,
+      title: `${assignments.length} schipper(s) direct bevestigen`,
+      confirmLabel: 'Bevestigen & Email Versturen',
+      onConfirm: async (rates) => {
+        setRateModal(null);
+        setActionLoading(true);
+        try {
+          const assignmentsWithRates = assignments.map(a => ({
+            ...a,
+            rate: rates[a.skipper_id],
+          }));
+          const result = await eventsApi.confirmDirect(parseInt(id), assignmentsWithRates);
+          const emailInfo = result.emails_failed > 0
+            ? ` (${result.emails_sent} email(s) verstuurd, ${result.emails_failed} mislukt)`
+            : '';
+          toast.success(`${result.message}${emailInfo}`);
+          await loadEvent();
+          setDirectConfirmModalOpen(false);
+        } catch (error: any) {
+          console.error('Error confirming skippers:', error);
+          const errorMessage = error.response?.data?.detail || 'Fout bij het bevestigen van schippers';
+          toast.error(errorMessage);
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
   const handleReplaceSkipper = async (invitationId: number, replacementSkipperId: number, reason: string) => {

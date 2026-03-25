@@ -294,7 +294,7 @@ export const eventsApi = {
 
   confirmDirect: async (
     eventId: number,
-    assignments: Array<{ skipper_id: number; role: string }>
+    assignments: Array<{ skipper_id: number; role: string; rate?: number }>
   ): Promise<{
     success: boolean;
     message: string;

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { Skipper, Event } from '../../types';
-import { ConfirmDialog } from '../common/ConfirmDialog';
 import { toast } from 'sonner';
 
 interface DirectConfirmModalProps {
@@ -23,7 +22,6 @@ export function DirectConfirmModal({
   const [selectedSkippers, setSelectedSkippers] = useState<Set<number>>(new Set());
   const [selectedRole, setSelectedRole] = useState<RoleType>('skipper');
   const [confirming, setConfirming] = useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const handleToggleSkipper = (skipperId: number) => {
     setSelectedSkippers(prev => {
@@ -37,23 +35,17 @@ export function DirectConfirmModal({
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (selectedSkippers.size === 0) {
       toast.info('Selecteer minimaal één schipper');
       return;
     }
-    setShowConfirmDialog(true);
-  };
-
-  const executeSubmit = async () => {
-    setShowConfirmDialog(false);
     setConfirming(true);
     try {
       const assignments = Array.from(selectedSkippers).map(skipper_id => ({
         skipper_id,
         role: selectedRole
       }));
-
       await onConfirm(assignments);
       setSelectedSkippers(new Set());
       setSelectedRole('skipper');
@@ -64,13 +56,6 @@ export function DirectConfirmModal({
       setConfirming(false);
     }
   };
-
-  const roleLabel = {
-    skipper: 'schipper(s)',
-    head_skipper: 'hoofdschipper',
-    race_director: 'wedstrijdleider(s)',
-    coach: 'coach(es)'
-  }[selectedRole];
 
   const handleClose = () => {
     if (!confirming) {
@@ -196,15 +181,6 @@ export function DirectConfirmModal({
           </div>
         </div>
 
-        <ConfirmDialog
-          isOpen={showConfirmDialog}
-          title="Schippers bevestigen"
-          message={`Wil je ${selectedSkippers.size} ${roleLabel} direct bevestigen voor dit event?`}
-          confirmLabel="Bevestigen"
-          variant="info"
-          onConfirm={executeSubmit}
-          onCancel={() => setShowConfirmDialog(false)}
-        />
       </div>
     </div>
   );
