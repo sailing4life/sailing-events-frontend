@@ -1336,7 +1336,6 @@ export function EventDetailPage() {
                       .filter(skipper => {
                         if (inviteRole === 'race_director') return skipper.is_race_director;
                         if (inviteRole === 'coach') return skipper.is_coach;
-                        if (['academie', 'proces'].includes(event.event_type)) return skipper.is_coach;
                         return skipper.is_skipper;
                       })
                       .map((skipper) => (
