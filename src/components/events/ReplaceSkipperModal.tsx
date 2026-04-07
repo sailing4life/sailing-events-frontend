@@ -6,7 +6,7 @@ interface ReplaceSkipperModalProps {
   onClose: () => void;
   invitation: Invitation | null;
   availableSkippers: Skipper[];
-  onReplace: (invitationId: number, replacementSkipperId: number | undefined, reason: string) => Promise<void>;
+  onReplace: (invitationId: number, replacementSkipperId: number | undefined, reason: string | undefined) => Promise<void>;
 }
 
 export function ReplaceSkipperModal({
@@ -17,25 +17,14 @@ export function ReplaceSkipperModal({
   onReplace
 }: ReplaceSkipperModalProps) {
   const [selectedSkipperId, setSelectedSkipperId] = useState<number | null>(null);
-  const [reason, setReason] = useState('');
-  const [customReason, setCustomReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
-
-  const predefinedReasons = [
-    'Ziek',
-    'Noodgeval',
-    'Persoonlijke omstandigheden',
-    'Anders (specificeer hieronder)'
-  ];
 
   const handleSubmit = async () => {
     if (!invitation) return;
 
-    const finalReason = reason === 'Anders (specificeer hieronder)' ? customReason : reason;
-
     setSubmitting(true);
     try {
-      await onReplace(invitation.id, selectedSkipperId ?? undefined, finalReason);
+      await onReplace(invitation.id, selectedSkipperId ?? undefined, undefined);
       handleClose();
     } catch (error) {
       console.error('Error replacing skipper:', error);
@@ -46,8 +35,6 @@ export function ReplaceSkipperModal({
 
   const handleClose = () => {
     setSelectedSkipperId(null);
-    setReason('');
-    setCustomReason('');
     onClose();
   };
 
@@ -80,48 +67,16 @@ export function ReplaceSkipperModal({
             <p className="text-sm text-gray-600">{invitation.skipper.email}</p>
           </div>
 
-          {/* Replacement Reason */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Reden voor vervanging *
-            </label>
-            <div className="space-y-2">
-              {predefinedReasons.map((r) => (
-                <label key={r} className="flex items-center">
-                  <input
-                    type="radio"
-                    name="reason"
-                    value={r}
-                    checked={reason === r}
-                    onChange={(e) => setReason(e.target.value)}
-                    className="w-4 h-4 text-cyan-600 border-gray-300 focus:ring-cyan-500"
-                  />
-                  <span className="ml-2 text-gray-700">{r}</span>
-                </label>
-              ))}
-            </div>
-
-            {reason === 'Anders (specificeer hieronder)' && (
-              <input
-                type="text"
-                value={customReason}
-                onChange={(e) => setCustomReason(e.target.value)}
-                placeholder="Specificeer de reden..."
-                className="mt-3 input"
-              />
-            )}
-          </div>
-
           {/* Replacement Skipper Selection */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Selecteer vervanger *
+              Selecteer vervanger (optioneel)
             </label>
             <div className="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-3">
               {availableSkippers.map((skipper) => (
                 <div
                   key={skipper.id}
-                  onClick={() => setSelectedSkipperId(skipper.id)}
+                  onClick={() => setSelectedSkipperId((prev: number | null) => prev === skipper.id ? null : skipper.id)}
                   className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
                     selectedSkipperId === skipper.id
                       ? 'border-cyan-600 bg-cyan-50'
@@ -170,7 +125,7 @@ export function ReplaceSkipperModal({
             </button>
             <button
               onClick={handleSubmit}
-              disabled={submitting || (reason === 'Anders (specificeer hieronder)' && !customReason.trim())}
+              disabled={submitting}
               className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {submitting ? 'Bezig...' : selectedSkipperId ? 'Vervangen' : 'Annuleren zonder vervanger'}
