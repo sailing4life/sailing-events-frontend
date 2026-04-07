@@ -318,13 +318,13 @@ export const eventsApi = {
 
   replaceSkipper: async (eventId: number, data: {
     original_invitation_id: number;
-    replacement_skipper_id: number;
-    replacement_reason: string;
+    replacement_skipper_id?: number;
+    replacement_reason?: string;
   }): Promise<{
     success: boolean;
     message: string;
     original_invitation_id: number;
-    replacement_invitation_id: number;
+    replacement_invitation_id: number | null;
     cancellation_email_sent: boolean;
     confirmation_email_sent: boolean;
   }> => {

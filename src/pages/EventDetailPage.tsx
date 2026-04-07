@@ -372,7 +372,7 @@ export function EventDetailPage() {
     });
   };
 
-  const handleReplaceSkipper = async (invitationId: number, replacementSkipperId: number, reason: string) => {
+  const handleReplaceSkipper = async (invitationId: number, replacementSkipperId: number | undefined, reason: string | undefined) => {
     if (!id) return;
 
     try {
@@ -382,9 +382,13 @@ export function EventDetailPage() {
         replacement_reason: reason
       });
 
-      const emailStatus = result.cancellation_email_sent && result.confirmation_email_sent
-        ? 'Emails verstuurd naar beide schippers'
-        : 'Let op: niet alle emails zijn verstuurd';
+      const emailStatus = replacementSkipperId
+        ? (result.cancellation_email_sent && result.confirmation_email_sent
+            ? 'Emails verstuurd naar beide schippers'
+            : 'Let op: niet alle emails zijn verstuurd')
+        : (result.cancellation_email_sent
+            ? 'Annuleringsmail verstuurd'
+            : 'Let op: annuleringsmail niet verstuurd');
 
       toast.success(`${result.message} - ${emailStatus}`);
 
@@ -953,9 +957,10 @@ export function EventDetailPage() {
                                 ✓ Bevestig
                               </button>
                             )}
-                            {invitation.status === 'confirmed' && event.workflow_phase === 'finalized' && (
+                            {invitation.status === 'confirmed' && (event.workflow_phase === 'finalized' || event.workflow_phase === 'invitation') && (
                               <button
-                                onClick={() => {
+                                onClick={async () => {
+                                  await ensureModalData();
                                   setInvitationToReplace(invitation);
                                   setReplaceModalOpen(true);
                                 }}
