@@ -218,6 +218,13 @@ export function EventDetailPage() {
 
   const handleConfirmInvitation = (invitation: Invitation) => {
     if (!event) return;
+    const isOverCapacity = !isRaceDirector && !isCoach && confirmedSkippers >= requiredSkippers && requiredSkippers > 0;
+    if (isOverCapacity) {
+      const confirmed = window.confirm(
+        `Er zijn al ${confirmedSkippers} schippers bevestigd voor ${requiredSkippers} boot${requiredSkippers !== 1 ? 'en' : ''}. Weet je zeker dat je nog een schipper wilt bevestigen?`
+      );
+      if (!confirmed) return;
+    }
     const skipper = invitation.skipper;
     const isHalfDay = ['half_day', 'morning', 'afternoon'].includes(event.duration);
     const defaultRate = isHalfDay ? (skipper.half_day_rate ?? 0) : (skipper.full_day_rate ?? 0);
@@ -951,7 +958,7 @@ export function EventDetailPage() {
                             {invitation.status === 'available' && event.workflow_phase === 'invitation' && (
                               <button
                                 onClick={() => handleConfirmInvitation(invitation)}
-                                disabled={actionLoading || (isRaceDirector ? remainingRaceDirectorConfirmations === 0 : isCoach ? remainingCoachConfirmations === 0 : remainingSkipperConfirmations === 0)}
+                                disabled={actionLoading || (isRaceDirector ? remainingRaceDirectorConfirmations === 0 : isCoach ? remainingCoachConfirmations === 0 : false)}
                                 className="px-3 py-1 text-sm rounded-lg font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
                               >
                                 ✓ Bevestig
