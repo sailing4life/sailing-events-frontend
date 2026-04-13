@@ -218,7 +218,9 @@ export function EventDetailPage() {
 
   const handleConfirmInvitation = (invitation: Invitation) => {
     if (!event) return;
-    const isOverCapacity = !isRaceDirector && !isCoach && confirmedSkippers >= requiredSkippers && requiredSkippers > 0;
+    const invIsRaceDirector = invitation.role === 'race_director';
+    const invIsCoach = invitation.role === 'coach';
+    const isOverCapacity = !invIsRaceDirector && !invIsCoach && confirmedSkippers >= requiredSkippers && requiredSkippers > 0;
     if (isOverCapacity) {
       const confirmed = window.confirm(
         `Er zijn al ${confirmedSkippers} schippers bevestigd voor ${requiredSkippers} boot${requiredSkippers !== 1 ? 'en' : ''}. Weet je zeker dat je nog een schipper wilt bevestigen?`
