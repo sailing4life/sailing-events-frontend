@@ -68,8 +68,6 @@ export interface Event {
   duration: EventDuration;
   event_type: EventType;
   notes?: string;
-  start_time?: string;
-  end_time?: string;
   required_race_directors: number;
   required_coaches: number;
   workflow_phase: EventWorkflowPhase;
