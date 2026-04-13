@@ -11,6 +11,8 @@ interface EventFormData {
   duration: 'half_day' | 'morning' | 'afternoon' | 'full_day';
   event_type: string;
   notes: string;
+  start_time: string;
+  end_time: string;
   required_race_directors: number;
   required_coaches: number;
   selected_boats: number[];
@@ -39,6 +41,8 @@ export function CreateEventPage() {
     duration: 'full_day',
     event_type: '',
     notes: '',
+    start_time: '',
+    end_time: '',
     required_race_directors: 0,
     required_coaches: 0,
     selected_boats: [],
@@ -100,6 +104,8 @@ export function CreateEventPage() {
         duration: formData.duration,
         event_type: formData.event_type,
         notes: formData.notes || undefined,
+        start_time: formData.start_time || undefined,
+        end_time: formData.end_time || undefined,
         required_race_directors: formData.required_race_directors,
         required_coaches: formData.required_coaches,
         boat_ids: formData.selected_boats,
@@ -372,6 +378,27 @@ export function CreateEventPage() {
                 <p className="text-xs text-gray-500 mt-1">Aantal coaches dat nodig is voor dit coaching event.</p>
               </div>
             )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Starttijd (optioneel)</label>
+                <input
+                  type="time"
+                  value={formData.start_time}
+                  onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                  className="input-field"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Eindtijd (optioneel)</label>
+                <input
+                  type="time"
+                  value={formData.end_time}
+                  onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
+                  className="input-field"
+                />
+              </div>
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Notities (optioneel)</label>

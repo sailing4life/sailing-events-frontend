@@ -11,6 +11,8 @@ interface EventFormData {
   duration: 'half_day' | 'morning' | 'afternoon' | 'full_day';
   event_type: string;
   notes: string;
+  start_time: string;
+  end_time: string;
   required_race_directors: number;
   required_coaches: number;
 }
@@ -31,6 +33,8 @@ export function EditEventPage() {
     duration: 'full_day',
     event_type: '',
     notes: '',
+    start_time: '',
+    end_time: '',
     required_race_directors: 0,
     required_coaches: 0,
   });
@@ -59,6 +63,8 @@ export function EditEventPage() {
         duration: eventData.duration,
         event_type: eventData.event_type,
         notes: eventData.notes || '',
+        start_time: eventData.start_time || '',
+        end_time: eventData.end_time || '',
         required_race_directors: eventData.required_race_directors || 0,
         required_coaches: eventData.required_coaches || 0,
       });
@@ -98,6 +104,8 @@ export function EditEventPage() {
         duration: formData.duration,
         event_type: formData.event_type,
         notes: formData.notes || undefined,
+        start_time: formData.start_time || undefined,
+        end_time: formData.end_time || undefined,
         required_race_directors: formData.required_race_directors,
         required_coaches: formData.required_coaches,
         boat_ids: selectedBoatIds,
@@ -232,6 +240,27 @@ export function EditEventPage() {
               />
             </div>
           )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Starttijd (optioneel)</label>
+              <input
+                type="time"
+                value={formData.start_time}
+                onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                className="input-field"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Eindtijd (optioneel)</label>
+              <input
+                type="time"
+                value={formData.end_time}
+                onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
+                className="input-field"
+              />
+            </div>
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Notities (optioneel)</label>
