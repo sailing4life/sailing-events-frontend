@@ -24,7 +24,7 @@ export function NotificationsPage() {
     loadNotifications();
 
     const streamUrl = `${API_BASE_URL}/api/notifications/stream?ngrok-skip-browser-warning=true`;
-    const eventSource = new EventSource(streamUrl);
+    const eventSource = new EventSource(streamUrl, { withCredentials: true });
     eventSource.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data) as NotificationItem;

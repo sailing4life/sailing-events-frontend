@@ -13,8 +13,8 @@ export function Header() {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     toast.success('Je bent uitgelogd');
     navigate('/login');
   };
@@ -31,7 +31,7 @@ export function Header() {
     loadNotifications();
 
     const streamUrl = `${API_BASE_URL}/api/notifications/stream?ngrok-skip-browser-warning=true`;
-    const eventSource = new EventSource(streamUrl);
+    const eventSource = new EventSource(streamUrl, { withCredentials: true });
     eventSource.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data) as NotificationItem;

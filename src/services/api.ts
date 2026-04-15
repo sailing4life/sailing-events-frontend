@@ -13,15 +13,14 @@ const api = axios.create({
     // Bypass ngrok browser warning for API calls
     'ngrok-skip-browser-warning': 'true',
   },
+  withCredentials: true, // Stuur httpOnly cookie automatisch mee
 });
 
-// Auto-logout on 401 (expired/invalid token)
+// Auto-logout on 401 (verlopen of ongeldige sessie)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && !error.config?.url?.includes('/auth/login')) {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_user');
       window.location.href = '/login';
     }
     return Promise.reject(error);
