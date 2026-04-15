@@ -11,6 +11,8 @@ interface EventFormData {
   duration: 'half_day' | 'morning' | 'afternoon' | 'full_day';
   event_type: string;
   notes: string;
+  start_time: string;
+  end_time: string;
   required_race_directors: number;
   required_coaches: number;
 }
@@ -31,6 +33,8 @@ export function EditEventPage() {
     duration: 'full_day',
     event_type: '',
     notes: '',
+    start_time: '',
+    end_time: '',
     required_race_directors: 0,
     required_coaches: 0,
   });
@@ -59,6 +63,8 @@ export function EditEventPage() {
         duration: eventData.duration,
         event_type: eventData.event_type,
         notes: eventData.notes || '',
+        start_time: eventData.start_time || '',
+        end_time: eventData.end_time || '',
         required_race_directors: eventData.required_race_directors || 0,
         required_coaches: eventData.required_coaches || 0,
       });
@@ -110,6 +116,8 @@ export function EditEventPage() {
         duration: formData.duration,
         event_type: formData.event_type,
         notes: formData.notes || undefined,
+        start_time: formData.start_time || undefined,
+        end_time: formData.end_time || undefined,
         required_race_directors: formData.required_race_directors,
         required_coaches: formData.required_coaches,
         boat_ids: selectedBoatIds,
