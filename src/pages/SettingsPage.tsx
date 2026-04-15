@@ -329,6 +329,67 @@ export function SettingsPage() {
         )}
       </div>
 
+      {/* Release Notes */}
+      <div className="card mb-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">📋 Release Notes</h2>
+        <div className="space-y-6">
+
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-sm font-bold text-gray-900">v1.0.3</span>
+              <span className="text-xs text-gray-400">April 2026</span>
+              <span className="bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded">Huidig</span>
+            </div>
+            <ul className="text-sm text-gray-600 space-y-1 ml-4 list-disc">
+              <li>Beveiliging: sessie tokens worden nu opgeslagen in beveiligde httpOnly cookies (niet meer toegankelijk via JavaScript)</li>
+              <li>Beveiliging: notificatie stream beveiligd met authenticatie</li>
+              <li>Fix: inlogpagina bleef herladen na succesvol inloggen</li>
+              <li>Fix: TypeScript fout in event aanmaken formulier (start/eindtijd)</li>
+            </ul>
+          </div>
+
+          <div className="border-t border-gray-100 pt-4">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-sm font-bold text-gray-900">v1.0.2</span>
+              <span className="text-xs text-gray-400">Maart 2026</span>
+            </div>
+            <ul className="text-sm text-gray-600 space-y-1 ml-4 list-disc">
+              <li>Start- en eindtijd toegevoegd aan event formulier en bevestigingsmails</li>
+              <li>ICS-bijlage in uitnodigingsmails met correcte tijden</li>
+              <li>Automatisch invullen van start/eindtijd op basis van geselecteerde duur</li>
+            </ul>
+          </div>
+
+          <div className="border-t border-gray-100 pt-4">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-sm font-bold text-gray-900">v1.0.1</span>
+              <span className="text-xs text-gray-400">Februari 2026</span>
+            </div>
+            <ul className="text-sm text-gray-600 space-y-1 ml-4 list-disc">
+              <li>Coach en wedstrijdleider rollen toegevoegd aan uitnodigingsflow</li>
+              <li>Vervangen van schippers vanuit event detail pagina</li>
+              <li>Onderhoudsbeheer voor boten</li>
+              <li>Statistieken overzicht per jaar</li>
+            </ul>
+          </div>
+
+          <div className="border-t border-gray-100 pt-4">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-sm font-bold text-gray-900">v1.0.0</span>
+              <span className="text-xs text-gray-400">Januari 2026</span>
+            </div>
+            <ul className="text-sm text-gray-600 space-y-1 ml-4 list-disc">
+              <li>Initiële release</li>
+              <li>Event beheer met uitnodigingsflow via email</li>
+              <li>Schipper- en bootbeheer</li>
+              <li>Realtime notificaties bij reacties van schippers</li>
+              <li>Excel import voor schippers</li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+
       <ConfirmDialog
         isOpen={!!deleteConfirm}
         title="Event type verwijderen"
