@@ -81,6 +81,18 @@ export function CreateEventPage() {
     }
   };
 
+  const defaultTimes: Record<string, { start: string; end: string }> = {
+    morning:  { start: '09:00', end: '13:00' },
+    afternoon: { start: '13:00', end: '17:00' },
+    full_day:  { start: '09:00', end: '17:00' },
+    half_day:  { start: '09:00', end: '13:00' },
+  };
+
+  const handleDurationChange = (duration: string) => {
+    const times = defaultTimes[duration];
+    setFormData({ ...formData, duration: duration as any, start_time: times?.start ?? '', end_time: times?.end ?? '' });
+  };
+
   const handleNext = () => {
     if (step < totalSteps) setStep(step + 1);
   };
@@ -293,7 +305,7 @@ export function CreateEventPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Duur</label>
                 <select
                   value={formData.duration}
-                  onChange={(e) => setFormData({ ...formData, duration: e.target.value as any })}
+                  onChange={(e) => handleDurationChange(e.target.value)}
                   className="input-field"
                 >
                   <option value="">-- Selecteer duur --</option>

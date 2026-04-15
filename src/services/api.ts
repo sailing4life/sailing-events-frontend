@@ -198,6 +198,8 @@ export const eventsApi = {
     duration: string;
     event_type: string;
     notes?: string;
+    start_time?: string;
+    end_time?: string;
     required_race_directors: number;
     required_coaches: number;
     boat_ids: number[];
@@ -218,6 +220,8 @@ export const eventsApi = {
     duration: string;
     event_type: string;
     notes?: string;
+    start_time?: string;
+    end_time?: string;
     required_race_directors: number;
     required_coaches: number;
     boat_ids?: number[];
