@@ -11,6 +11,8 @@ interface EventFormData {
   duration: 'half_day' | 'morning' | 'afternoon' | 'full_day';
   event_type: string;
   notes: string;
+  start_time: string;
+  end_time: string;
   required_race_directors: number;
   required_coaches: number;
   selected_boats: number[];
@@ -39,6 +41,8 @@ export function CreateEventPage() {
     duration: 'full_day',
     event_type: '',
     notes: '',
+    start_time: '09:00',
+    end_time: '17:00',
     required_race_directors: 0,
     required_coaches: 0,
     selected_boats: [],
