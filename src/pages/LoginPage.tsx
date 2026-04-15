@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
@@ -7,8 +7,15 @@ export function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Navigeer naar home zodra de auth state is bijgewerkt
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,7 +24,6 @@ export function LoginPage() {
     try {
       await login(username, password);
       toast.success('Succesvol ingelogd!');
-      navigate('/');
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || 'Login mislukt. Controleer je gebruikersnaam en wachtwoord.';
       toast.error(errorMessage);
