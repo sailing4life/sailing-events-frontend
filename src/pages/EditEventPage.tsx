@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { eventsApi, eventTypesApi, boatsApi } from '../services/api';
-import type { Event, EventTypeConfig, Boat } from '../types';
+import { eventsApi, eventTypesApi } from '../services/api';
+import type { Event, EventTypeConfig } from '../types';
 import { toast } from 'sonner';
 
 interface EventFormData {
@@ -24,8 +24,7 @@ export function EditEventPage() {
   const [submitting, setSubmitting] = useState(false);
   const [event, setEvent] = useState<Event | null>(null);
   const [eventTypes, setEventTypes] = useState<EventTypeConfig[]>([]);
-  const [boats, setBoats] = useState<Boat[]>([]);
-  const [selectedBoatIds, setSelectedBoatIds] = useState<number[]>([]);
+  const [boatCount, setBoatCount] = useState<number>(1);
   const [formData, setFormData] = useState<EventFormData>({
     event_name: '',
     company_name: '',
@@ -46,15 +45,14 @@ export function EditEventPage() {
   const loadAll = async () => {
     if (!id) return;
     try {
-      const [eventData, eventTypesData, boatsData] = await Promise.all([
+      const [eventData, eventTypesData] = await Promise.all([
         eventsApi.getById(parseInt(id)),
         eventTypesApi.getAll(),
-        boatsApi.getAll(),
       ]);
 
       setEvent(eventData);
       setEventTypes(eventTypesData);
-      setBoats(boatsData.filter(b => b.is_active));
+      setBoatCount(eventData.event_boats.length || 1);
 
       setFormData({
         event_name: eventData.event_name,
@@ -68,9 +66,6 @@ export function EditEventPage() {
         required_race_directors: eventData.required_race_directors || 0,
         required_coaches: eventData.required_coaches || 0,
       });
-
-      // Pre-select current boats
-      setSelectedBoatIds(eventData.event_boats.map((eb: any) => eb.boat.id));
     } catch (error) {
       console.error('Error loading event:', error);
       toast.error('Fout bij het laden van het event');
@@ -92,20 +87,9 @@ export function EditEventPage() {
     setFormData({ ...formData, duration: duration as any, start_time: times?.start ?? '', end_time: times?.end ?? '' });
   };
 
-  const toggleBoat = (boatId: number) => {
-    setSelectedBoatIds(prev =>
-      prev.includes(boatId) ? prev.filter(id => id !== boatId) : [...prev, boatId]
-    );
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
-
-    if (selectedBoatIds.length === 0) {
-      toast.error('Selecteer minimaal één boot');
-      return;
-    }
 
     setSubmitting(true);
     try {
@@ -120,7 +104,7 @@ export function EditEventPage() {
         end_time: formData.end_time || undefined,
         required_race_directors: formData.required_race_directors,
         required_coaches: formData.required_coaches,
-        boat_ids: selectedBoatIds,
+        boat_count: boatCount,
       });
 
       toast.success('Event succesvol bijgewerkt!');
@@ -284,31 +268,37 @@ export function EditEventPage() {
             />
           </div>
 
-          {/* Boat selection */}
+          {/* Boat count */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Boten * <span className="text-gray-500 font-normal">({selectedBoatIds.length} geselecteerd)</span>
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {boats.map((boat) => {
-                const selected = selectedBoatIds.includes(boat.id);
-                return (
-                  <button
-                    key={boat.id}
-                    type="button"
-                    onClick={() => toggleBoat(boat.id)}
-                    className={`p-3 rounded-lg border-2 text-left transition-colors ${
-                      selected
-                        ? 'border-cyan-500 bg-cyan-50 text-cyan-900'
-                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="font-medium">⛵ {boat.name}</div>
-                    <div className="text-xs text-gray-500 mt-0.5">{boat.boat_type} · {boat.capacity} pers.</div>
-                  </button>
-                );
-              })}
+            <label className="block text-sm font-medium text-gray-700 mb-2">Aantal boten *</label>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setBoatCount(prev => Math.max(1, prev - 1))}
+                className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center text-xl font-bold hover:border-cyan-500 hover:text-cyan-600 transition-colors"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min="1"
+                max="20"
+                value={boatCount}
+                onChange={(e) => setBoatCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                className="w-20 text-center text-2xl font-bold input-field"
+              />
+              <button
+                type="button"
+                onClick={() => setBoatCount(prev => Math.min(20, prev + 1))}
+                className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center text-xl font-bold hover:border-cyan-500 hover:text-cyan-600 transition-colors"
+              >
+                +
+              </button>
+              <span className="text-gray-600">{boatCount === 1 ? 'boot' : 'boten'}</span>
             </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Als het aantal wijzigt, kiest het systeem automatisch nieuwe boten (interne boten hebben prioriteit).
+            </p>
           </div>
 
         </div>
