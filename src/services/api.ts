@@ -202,7 +202,8 @@ export const eventsApi = {
     end_time?: string;
     required_race_directors: number;
     required_coaches: number;
-    boat_ids: number[];
+    boat_ids?: number[];
+    boat_count?: number;
   }): Promise<Event> => {
     const response = await api.post('/api/events', eventData);
     return response.data;
@@ -225,6 +226,7 @@ export const eventsApi = {
     required_race_directors: number;
     required_coaches: number;
     boat_ids?: number[];
+    boat_count?: number;
   }): Promise<Event> => {
     const response = await api.put(`/api/events/${eventId}`, eventData);
     return response.data;

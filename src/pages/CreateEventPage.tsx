@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { boatsApi, skippersApi, eventsApi, eventTypesApi } from '../services/api';
-import type { Boat, Skipper, EventTypeConfig } from '../types';
+import { skippersApi, eventsApi, eventTypesApi } from '../services/api';
+import type { Skipper, EventTypeConfig } from '../types';
 import { toast } from 'sonner';
 
 interface EventFormData {
@@ -15,7 +15,7 @@ interface EventFormData {
   end_time: string;
   required_race_directors: number;
   required_coaches: number;
-  selected_boats: number[];
+  boat_count: number;
   selected_head_skipper: number | null;
   selected_skippers: number[];
   selected_race_directors: number[];
@@ -25,7 +25,6 @@ interface EventFormData {
 export function CreateEventPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [boats, setBoats] = useState<Boat[]>([]);
   const [skippers, setSkippers] = useState<Skipper[]>([]);
   const [eventTypes, setEventTypes] = useState<EventTypeConfig[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +44,7 @@ export function CreateEventPage() {
     end_time: '',
     required_race_directors: 0,
     required_coaches: 0,
-    selected_boats: [],
+    boat_count: 4,
     selected_head_skipper: null,
     selected_skippers: [],
     selected_race_directors: [],
@@ -60,12 +59,10 @@ export function CreateEventPage() {
 
   const loadData = async () => {
     try {
-      const [boatsData, skippersData, eventTypesData] = await Promise.all([
-        boatsApi.getAll(),
+      const [skippersData, eventTypesData] = await Promise.all([
         skippersApi.getAll(),
         eventTypesApi.getAll(),
       ]);
-      setBoats(boatsData.filter(b => b.is_active));
       setSkippers(skippersData.filter(s => s.is_active));
       setEventTypes(eventTypesData);
       if (eventTypesData.length > 0 && !formData.event_type) {
@@ -79,7 +76,7 @@ export function CreateEventPage() {
       }
     } catch (error) {
       console.error('Error loading data:', error);
-      toast.error('Fout bij het laden van boten, schippers of event types');
+      toast.error('Fout bij het laden van schippers of event types');
     } finally {
       setLoading(false);
     }
@@ -108,7 +105,7 @@ export function CreateEventPage() {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      // Step 1: Create event with boats only
+      // Step 1: Create event — system auto-picks boats by count
       const event = await eventsApi.create({
         event_name: formData.event_name,
         company_name: formData.company_name,
@@ -120,7 +117,7 @@ export function CreateEventPage() {
         end_time: formData.end_time || undefined,
         required_race_directors: formData.required_race_directors,
         required_coaches: formData.required_coaches,
-        boat_ids: formData.selected_boats,
+        boat_count: formData.boat_count,
       });
 
       // Step 2: Send invitations to skippers, head skipper, race directors and coaches
@@ -170,15 +167,6 @@ export function CreateEventPage() {
     }
   };
 
-  const toggleBoat = (boatId: number) => {
-    setFormData(prev => ({
-      ...prev,
-      selected_boats: prev.selected_boats.includes(boatId)
-        ? prev.selected_boats.filter(id => id !== boatId)
-        : [...prev.selected_boats, boatId],
-    }));
-  };
-
   const toggleSkipper = (skipperId: number) => {
     setFormData(prev => ({
       ...prev,
@@ -218,7 +206,7 @@ export function CreateEventPage() {
       case 1:
         return formData.event_name && formData.company_name && formData.event_date && formData.event_type;
       case 2:
-        return formData.selected_boats.length > 0;
+        return formData.boat_count >= 1;
       case 3:
         // Allow proceeding even with fewer skippers or race directors than required.
         return true;
@@ -425,53 +413,52 @@ export function CreateEventPage() {
           </div>
         )}
 
-        {/* Step 2: Select Boats */}
+        {/* Step 2: Number of Boats */}
         {step === 2 && (
           <div>
-            <h2 className="text-xl font-semibold mb-4">Selecteer Boten</h2>
-            <p className="text-gray-600 mb-4">Kies de boten die je wilt gebruiken voor dit event</p>
+            <h2 className="text-xl font-semibold mb-4">Aantal Boten</h2>
+            <p className="text-gray-600 mb-6">
+              Geef op hoeveel boten je nodig hebt. Het systeem kiest automatisch beschikbare interne boten.
+            </p>
 
-            <div className="grid grid-cols-2 gap-4">
-              {boats.map((boat) => (
-                <div
-                  key={boat.id}
-                  onClick={() => toggleBoat(boat.id)}
-                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                    formData.selected_boats.includes(boat.id)
-                      ? 'border-cyan-600 bg-cyan-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{boat.name}</h3>
-                      <p className="text-sm text-gray-600">{boat.boat_type}</p>
-                      <p className="text-sm text-gray-500 mt-1">{boat.intern_extern}</p>
-                    </div>
-                    {formData.selected_boats.includes(boat.id) && (
-                      <svg className="w-6 h-6 text-cyan-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                    )}
-                  </div>
-                </div>
-              ))}
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, boat_count: Math.max(1, prev.boat_count - 1) }))}
+                className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center text-xl font-bold hover:border-cyan-500 hover:text-cyan-600 transition-colors"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min="1"
+                max="20"
+                value={formData.boat_count}
+                onChange={(e) => setFormData(prev => ({ ...prev, boat_count: Math.max(1, parseInt(e.target.value, 10) || 1) }))}
+                className="w-24 text-center text-3xl font-bold input-field"
+              />
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, boat_count: Math.min(20, prev.boat_count + 1) }))}
+                className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center text-xl font-bold hover:border-cyan-500 hover:text-cyan-600 transition-colors"
+              >
+                +
+              </button>
+              <span className="text-gray-600 text-lg">{formData.boat_count === 1 ? 'boot' : 'boten'}</span>
             </div>
 
-            {formData.selected_boats.length > 0 && (
-              <div className="mt-4 p-3 bg-cyan-50 rounded-lg">
-                <p className="text-sm text-cyan-800">
-                  {formData.selected_boats.length} {formData.selected_boats.length === 1 ? 'boot' : 'boten'} geselecteerd
-                </p>
-              </div>
-            )}
+            <div className="mt-6 p-4 bg-cyan-50 rounded-lg">
+              <p className="text-sm text-cyan-800">
+                Het systeem kiest automatisch {formData.boat_count} {formData.boat_count === 1 ? 'boot' : 'boten'} uit de vloot (interne boten hebben prioriteit).
+              </p>
+            </div>
           </div>
         )}
 
         {/* Step 3: Invite Skippers */}
         {step === 3 && (() => {
           const totalSkippers = formData.selected_skippers.length + (formData.selected_head_skipper ? 1 : 0);
-          const skipperShortage = formData.selected_boats.length - totalSkippers;
+          const skipperShortage = formData.boat_count - totalSkippers;
           const rdShortage = formData.required_race_directors - formData.selected_race_directors.length;
           const coachShortage = formData.required_coaches - formData.selected_coaches.length;
           const hasShortage = skipperShortage > 0 || rdShortage > 0 || (coachShortage > 0 && formData.event_type === 'coaching');
@@ -525,7 +512,7 @@ export function CreateEventPage() {
             <div className={`mb-4 p-3 rounded-lg border ${hasShortage ? 'bg-yellow-50 border-yellow-200' : 'bg-green-50 border-green-200'}`}>
               <div className="flex flex-wrap gap-4 text-sm">
                 <span className={skipperShortage > 0 ? 'text-yellow-800' : 'text-green-800'}>
-                  ⛵ {totalSkippers}/{formData.selected_boats.length} schippers
+                  ⛵ {totalSkippers}/{formData.boat_count} schippers
                 </span>
                 <span className={rdShortage > 0 ? 'text-yellow-800' : 'text-green-800'}>
                   📋 {formData.selected_race_directors.length}/{formData.required_race_directors} wedstrijdleiding
@@ -724,19 +711,12 @@ export function CreateEventPage() {
                 </div>
               </div>
 
-              {/* Selected Boats */}
+              {/* Boat Count */}
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Geselecteerde Boten</h3>
-                <div className="space-y-2">
-                  {formData.selected_boats.map((boatId) => {
-                    const boat = boats.find(b => b.id === boatId);
-                    return (
-                      <div key={boatId} className="bg-gray-50 rounded-lg p-3">
-                        <p className="font-medium">⛵ {boat?.name}</p>
-                        <p className="text-sm text-gray-600">{boat?.boat_type}</p>
-                      </div>
-                    );
-                  })}
+                <h3 className="font-semibold text-gray-900 mb-2">Boten</h3>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="font-medium">⛵ {formData.boat_count} {formData.boat_count === 1 ? 'boot' : 'boten'}</p>
+                  <p className="text-sm text-gray-500">Automatisch gekozen uit de vloot bij aanmaken</p>
                 </div>
               </div>
 
@@ -864,10 +844,10 @@ export function CreateEventPage() {
                   ℹ️ Hoe werkt het nieuwe proces?
                 </p>
                 <ol className="text-sm text-blue-800 space-y-1 ml-4 list-decimal">
-                  <li>Event wordt aangemaakt met geselecteerde boten</li>
+                  <li>Event wordt aangemaakt — systeem kiest automatisch {formData.boat_count} boten</li>
                   <li>Uitnodigingsemails worden verstuurd naar alle schippers</li>
                   <li>Schippers geven hun beschikbaarheid door via de email</li>
-                  <li>Jij wijst later de beschikbare schippers toe aan boten</li>
+                  <li>Jij bevestigt de beschikbare schippers</li>
                 </ol>
               </div>
             </div>
