@@ -154,68 +154,6 @@ export function EventDetailPage() {
     });
   };
 
-  const handleCloseEvent = () => {
-    if (!event || !id) return;
-
-    // Gather all confirmed invitations
-    const confirmed = (event.invitations || []).filter((inv: Invitation) => inv.status === 'confirmed');
-    const isHalfDay = ['half_day', 'morning', 'afternoon'].includes(event.duration);
-
-    const participants = confirmed.map((inv: Invitation) => ({
-      invitationId: inv.id,
-      name: `${inv.skipper.first_name} ${inv.skipper.last_name}`,
-      role: inv.role,
-      rate: isHalfDay ? (inv.skipper.half_day_rate ?? 0) : (inv.skipper.full_day_rate ?? 0),
-    }));
-
-    if (participants.length === 0) {
-      // No confirmed participants, just close directly
-      setConfirmAction({
-        title: 'Event afsluiten',
-        message: `Wil je het event "${event.event_name}" afsluiten? Beschikbare schippers die niet gekozen zijn krijgen een bericht.`,
-        variant: 'warning',
-        confirmLabel: 'Afsluiten',
-        onConfirm: async () => {
-          setConfirmAction(null);
-          setActionLoading(true);
-          try {
-            const result = await eventsApi.close(parseInt(id));
-            const emails = result.emails;
-            const emailSummary = emails ? ` (${emails.sent} mails verstuurd, ${emails.failed} mislukt)` : '';
-            toast.success(`${result.message}${emailSummary}`);
-            await loadEvent();
-          } catch (error: any) {
-            toast.error(error.response?.data?.detail || 'Fout bij het afsluiten van het event');
-          } finally {
-            setActionLoading(false);
-          }
-        },
-      });
-      return;
-    }
-
-    setRateModal({
-      participants,
-      title: 'Event afsluiten — tarieven controleren',
-      confirmLabel: 'Afsluiten',
-      onConfirm: async (_rates) => {
-        setRateModal(null);
-        setActionLoading(true);
-        try {
-          const result = await eventsApi.close(parseInt(id));
-          const emails = result.emails;
-          const emailSummary = emails ? ` (${emails.sent} mails verstuurd, ${emails.failed} mislukt)` : '';
-          toast.success(`${result.message}${emailSummary}`);
-          await loadEvent();
-        } catch (error: any) {
-          toast.error(error.response?.data?.detail || 'Fout bij het afsluiten van het event');
-        } finally {
-          setActionLoading(false);
-        }
-      },
-    });
-  };
-
   const handleConfirmInvitation = (invitation: Invitation) => {
     if (!event) return;
     const invIsRaceDirector = invitation.role === 'race_director';
@@ -739,14 +677,6 @@ export function EventDetailPage() {
               </a>
             ) : null;
           })()}
-          <button
-            onClick={handleCloseEvent}
-            disabled={actionLoading || event.workflow_phase !== 'invitation' || !allConfirmed}
-            className="px-4 py-2 rounded-lg font-medium transition-colors bg-yellow-600 text-white hover:bg-yellow-700 disabled:opacity-50"
-          >
-            ✅ Afsluiten
-          </button>
-
           {/* Spacer */}
           <div className="flex-1" />
 
