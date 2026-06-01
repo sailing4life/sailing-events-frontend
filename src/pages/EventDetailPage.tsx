@@ -276,6 +276,29 @@ export function EventDetailPage() {
       },
     });
   };
+  const handleRejectInvitation = (invitation: Invitation) => {
+    const name = `${invitation.skipper.first_name} ${invitation.skipper.last_name}`;
+    setConfirmAction({
+      title: 'Schipper afwijzen',
+      message: `Weet je zeker dat je ${name} wilt afwijzen? Er wordt een "niet geselecteerd" mail verstuurd.`,
+      variant: 'warning',
+      confirmLabel: 'Afwijzen & stuur email',
+      onConfirm: async () => {
+        setConfirmAction(null);
+        setActionLoading(true);
+        try {
+          const result = await invitationsApi.reject(invitation.id);
+          toast.success(result.message);
+          await loadEvent();
+        } catch (error: any) {
+          toast.error(error.response?.data?.detail || 'Fout bij het afwijzen');
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
+  };
+
   const handleSendReminder = () => {
     if (!event || !id) return;
 
@@ -964,6 +987,15 @@ export function EventDetailPage() {
                                 className="px-3 py-1 text-sm rounded-lg font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
                               >
                                 ✓ Bevestig
+                              </button>
+                            )}
+                            {(invitation.status === 'available' || invitation.status === 'maybe') && event.workflow_phase === 'invitation' && (
+                              <button
+                                onClick={() => handleRejectInvitation(invitation)}
+                                disabled={actionLoading}
+                                className="px-3 py-1 text-sm rounded-lg font-medium bg-red-100 text-red-700 hover:bg-red-200 disabled:opacity-50 transition-colors"
+                              >
+                                ✕ Afwijzen
                               </button>
                             )}
                             {invitation.status === 'confirmed' && (event.workflow_phase === 'finalized' || event.workflow_phase === 'invitation') && (

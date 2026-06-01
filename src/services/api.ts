@@ -401,6 +401,10 @@ export const invitationsApi = {
     const response = await api.post(`/api/invitations/${invitationId}/send-reminder`);
     return response.data;
   },
+  reject: async (invitationId: number): Promise<{ success: boolean; message: string; email_sent: boolean }> => {
+    const response = await api.post(`/api/invitations/${invitationId}/reject`);
+    return response.data;
+  },
 };
 
 // Notifications API
