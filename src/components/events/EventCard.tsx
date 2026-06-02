@@ -121,9 +121,7 @@ export function EventCard({ event, eventTypeLabels }: EventCardProps) {
           <p className="text-sm text-gray-600">{event.company_name}</p>
         </div>
         <div className="flex flex-col items-end gap-2">
-        {event.workflow_phase === 'finalized' ? (
-          <span className="badge badge-yes">✓ Afgesloten</span>
-        ) : isComplete ? (
+        {isComplete ? (
           <span className="badge badge-complete">✓ Compleet</span>
         ) : (
           <span className="badge badge-available">{availableCount}/{totalRequired} Beschikbaar</span>
@@ -174,7 +172,7 @@ export function EventCard({ event, eventTypeLabels }: EventCardProps) {
                           {inv.skipper.first_name} {inv.skipper.last_name}
                           {inv.role === 'head_skipper' && ' 👑'}
                         </span>
-                        {getInvitationStatusBadge(inv.status, event.workflow_phase === 'finalized')}
+                        {getInvitationStatusBadge(inv.status)}
                       </div>
                     ))}
                   </div>
@@ -195,7 +193,7 @@ export function EventCard({ event, eventTypeLabels }: EventCardProps) {
                     {rdInvs.map((inv) => (
                       <div key={inv.id} className="flex items-center space-x-1">
                         <span className="text-sm text-gray-700">{inv.skipper.first_name} {inv.skipper.last_name}</span>
-                        {getInvitationStatusBadge(inv.status, event.workflow_phase === 'finalized')}
+                        {getInvitationStatusBadge(inv.status)}
                       </div>
                     ))}
                   </div>
@@ -216,7 +214,7 @@ export function EventCard({ event, eventTypeLabels }: EventCardProps) {
                     {coachInvs.map((inv) => (
                       <div key={inv.id} className="flex items-center space-x-1">
                         <span className="text-sm text-gray-700">{inv.skipper.first_name} {inv.skipper.last_name}</span>
-                        {getInvitationStatusBadge(inv.status, event.workflow_phase === 'finalized')}
+                        {getInvitationStatusBadge(inv.status)}
                       </div>
                     ))}
                   </div>

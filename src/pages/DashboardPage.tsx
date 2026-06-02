@@ -303,7 +303,7 @@ function DaysBadge({ days }: { days: number }) {
 
 function PhaseChip({ phase }: { phase: string }) {
   if (phase === 'finalized') {
-    return <StatusBadge label="Definitief" color="#1d4ed8" bg="#eff6ff" />;
+    return <StatusBadge label="Compleet" color="#047857" bg="#ecfdf5" />;
   }
   return <StatusBadge label="Uitvraag loopt" color="#7c3aed" bg="#f5f3ff" />;
 }

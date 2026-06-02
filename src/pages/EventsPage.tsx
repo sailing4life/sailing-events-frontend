@@ -14,23 +14,25 @@ function getEventStatus(event: Event): { label: string; className: string } {
   const eventBoats = Array.isArray(event.event_boats) ? event.event_boats : [];
   const useInvitations = invitations.length > 0;
 
-  if (event.workflow_phase === 'finalized') {
-    return { label: 'Afgesloten', className: 'badge badge-yes' };
-  }
-
-  const skipperInvitations = useInvitations ? invitations.filter(inv => inv.role !== 'race_director') : [];
+  const skipperInvitations = useInvitations ? invitations.filter(inv => inv.role !== 'race_director' && inv.role !== 'coach') : [];
   const raceDirectorInvitations = useInvitations ? invitations.filter(inv => inv.role === 'race_director') : [];
+  const coachInvitations = useInvitations ? invitations.filter(inv => inv.role === 'coach') : [];
   const requiredSkippers = eventBoats.length;
   const requiredRaceDirectors = event.required_race_directors || 0;
+  const requiredCoaches = event.required_coaches || 0;
   const availableSkippers = useInvitations
     ? skipperInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length
     : eventBoats.filter(eb => eb.response_status === 'yes').length;
   const availableRaceDirectors = useInvitations
     ? raceDirectorInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length
     : 0;
+  const availableCoaches = useInvitations
+    ? coachInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length
+    : 0;
   const isComplete = requiredSkippers > 0
     && availableSkippers >= requiredSkippers
-    && availableRaceDirectors >= requiredRaceDirectors;
+    && availableRaceDirectors >= requiredRaceDirectors
+    && availableCoaches >= requiredCoaches;
   const hasPending = useInvitations
     ? invitations.some(inv => inv.status === 'pending')
     : eventBoats.some(eb => eb.response_status === 'pending');
@@ -81,32 +83,39 @@ export function EventsPage() {
     const useInvitations = invitations.length > 0;
 
     const skipperInvitations = useInvitations
-      ? invitations.filter(inv => inv.role !== 'race_director')
+      ? invitations.filter(inv => inv.role !== 'race_director' && inv.role !== 'coach')
       : [];
     const raceDirectorInvitations = useInvitations
       ? invitations.filter(inv => inv.role === 'race_director')
       : [];
+    const coachInvitations = useInvitations
+      ? invitations.filter(inv => inv.role === 'coach')
+      : [];
     const requiredSkippers = eventBoats.length;
     const requiredRaceDirectors = event.required_race_directors || 0;
+    const requiredCoaches = event.required_coaches || 0;
     const availableSkippers = useInvitations
       ? skipperInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length
       : eventBoats.filter(eb => eb.response_status === 'yes').length;
     const availableRaceDirectors = useInvitations
       ? raceDirectorInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length
       : 0;
+    const availableCoaches = useInvitations
+      ? coachInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length
+      : 0;
     const isComplete = requiredSkippers > 0
       && availableSkippers >= requiredSkippers
-      && availableRaceDirectors >= requiredRaceDirectors;
+      && availableRaceDirectors >= requiredRaceDirectors
+      && availableCoaches >= requiredCoaches;
     const hasPending = useInvitations
       ? invitations.some(inv => inv.status === 'pending')
       : eventBoats.some(eb => eb.response_status === 'pending');
 
     if (filterStatus === 'confirmed') {
-      return event.workflow_phase === 'finalized';
+      return invitations.filter(inv => inv.status === 'confirmed').length > 0 && isComplete;
     }
     if (filterStatus === 'complete') {
-      // Show events where all responses are in (no pending), but not yet finalized
-      return event.workflow_phase === 'invitation' && !hasPending && isComplete;
+      return !hasPending && isComplete;
     }
     if (filterStatus === 'pending') {
       return hasPending;
@@ -220,7 +229,7 @@ export function EventsPage() {
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
           >
-            Afgesloten
+            Bevestigd
           </button>
           <button
             onClick={() => setFilterStatus('complete')}
@@ -248,7 +257,7 @@ export function EventsPage() {
         <div className="mb-8 flex flex-wrap gap-2 text-sm text-gray-600">
           <span className="badge badge-available">Beschikbaar</span>
           <span className="badge badge-complete">Compleet</span>
-          <span className="badge badge-yes">Afgesloten</span>
+          <span className="badge badge-yes">Bevestigd</span>
           <span className="badge badge-pending">Wachtend</span>
         </div>
       )}

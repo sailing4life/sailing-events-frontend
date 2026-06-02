@@ -612,7 +612,7 @@ export function EventDetailPage() {
   const remainingRaceDirectorConfirmations = Math.max(0, requiredRaceDirectors - confirmedRaceDirectors);
   const remainingCoachConfirmations = Math.max(0, requiredCoaches - confirmedCoaches);
   const completeLabel = isComplete ? 'Compleet' : 'Niet compleet';
-  const confirmedLabel = event.workflow_phase === 'finalized' ? 'Afgesloten' : (allConfirmed ? 'Bevestigd' : 'Niet bevestigd');
+  const confirmedLabel = allConfirmed ? 'Bevestigd' : 'Niet bevestigd';
   const invitationMatchesFilter = (status: InvitationStatus) => (
     invitationFilter === 'all' || status === invitationFilter
   );
@@ -630,9 +630,7 @@ export function EventDetailPage() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{event.event_name}</h1>
             <p className="text-gray-600">{event.company_name}</p>
           </div>
-          {event.workflow_phase === 'finalized' ? (
-            <span className="badge badge-yes text-lg">✓ Afgesloten</span>
-          ) : isComplete ? (
+          {isComplete ? (
             <span className="badge badge-complete text-lg">✓ Compleet</span>
           ) : (
             <span className="badge badge-available text-lg">
@@ -644,7 +642,7 @@ export function EventDetailPage() {
         <div className="flex flex-wrap gap-2 mb-4">
           <span className="badge badge-available">{availabilityLabel}</span>
           <span className={`badge ${isComplete ? 'badge-complete' : 'badge-pending'}`}>{completeLabel}</span>
-          <span className={`badge ${event.workflow_phase === 'finalized' ? 'badge-yes' : allConfirmed ? 'badge-yes' : 'badge-pending'}`}>{confirmedLabel}</span>
+          <span className={`badge ${allConfirmed ? 'badge-yes' : 'badge-pending'}`}>{confirmedLabel}</span>
         </div>
         {needsWarning && (
           <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
@@ -657,9 +655,8 @@ export function EventDetailPage() {
           {/* Primary actions */}
           <button
             onClick={handleOpenEditModal}
-            disabled={actionLoading || event.workflow_phase === 'finalized'}
+            disabled={actionLoading}
             className="px-4 py-2 rounded-lg font-medium transition-colors bg-cyan-600 text-white hover:bg-cyan-700 disabled:opacity-50"
-            title={event.workflow_phase === 'finalized' ? 'Event is afgesloten en kan niet meer bewerkt worden' : ''}
           >
             ✏️ Bewerken
           </button>
@@ -854,9 +851,8 @@ export function EventDetailPage() {
                           </div>
                           <button
                             onClick={() => handleOpenInviteModal(group.role === 'race_director' ? 'race_director' : group.role === 'head_skipper' ? 'head_skipper' : group.role === 'coach' ? 'coach' : 'skippers')}
-                            disabled={actionLoading || event.workflow_phase === 'finalized'}
+                            disabled={actionLoading}
                             className="btn-primary flex items-center gap-2 disabled:opacity-50"
-                            title={event.workflow_phase === 'finalized' ? 'Kan geen nieuwe uitnodigingen versturen voor afgesloten events' : ''}
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -871,7 +867,7 @@ export function EventDetailPage() {
                         ) : (
                           <div className="space-y-3">
                             {visibleInvitations.map((invitation) => {
-                              const statusInfo = getInvitationStatusBadge(invitation.status, event.workflow_phase === 'finalized');
+                              const statusInfo = getInvitationStatusBadge(invitation.status);
                               const isRaceDirector = invitation.role === 'race_director';
                               const isHeadSkipper = invitation.role === 'head_skipper';
                               const isCoach = invitation.role === 'coach';
@@ -910,7 +906,7 @@ export function EventDetailPage() {
                                 ✉️ Herinner
                               </button>
                             )}
-                            {invitation.status === 'available' && event.workflow_phase === 'invitation' && (
+                            {invitation.status === 'available' && (
                               <button
                                 onClick={() => handleConfirmInvitation(invitation)}
                                 disabled={actionLoading || (isRaceDirector ? remainingRaceDirectorConfirmations === 0 : isCoach ? remainingCoachConfirmations === 0 : false)}
@@ -919,7 +915,7 @@ export function EventDetailPage() {
                                 ✓ Bevestig
                               </button>
                             )}
-                            {(invitation.status === 'available' || invitation.status === 'maybe') && event.workflow_phase === 'invitation' && (
+                            {(invitation.status === 'available' || invitation.status === 'maybe') && (
                               <button
                                 onClick={() => handleRejectInvitation(invitation)}
                                 disabled={actionLoading}
@@ -928,7 +924,7 @@ export function EventDetailPage() {
                                 ✕ Afwijzen
                               </button>
                             )}
-                            {invitation.status === 'confirmed' && (event.workflow_phase === 'finalized' || event.workflow_phase === 'invitation') && (
+                            {invitation.status === 'confirmed' && (
                               <button
                                 onClick={async () => {
                                   await ensureModalData();

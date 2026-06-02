@@ -16,12 +16,10 @@ const getDurationLabel = (duration: string) => {
   return labels[duration] || duration;
 };
 
-function getEventStatus(event: Event): 'finalized' | 'complete' | 'pending' {
+function getEventStatus(event: Event): 'complete' | 'pending' {
   const invitations = Array.isArray(event.invitations) ? event.invitations : [];
   const eventBoats = Array.isArray(event.event_boats) ? event.event_boats : [];
   const useInvitations = invitations.length > 0;
-
-  if (event.workflow_phase === 'finalized') return 'finalized';
 
   if (useInvitations) {
     const skipperInvitations = invitations.filter(inv => inv.role !== 'race_director' && inv.role !== 'coach');
@@ -53,8 +51,7 @@ function getEventStatus(event: Event): 'finalized' | 'complete' | 'pending' {
 }
 
 const statusColors: Record<string, { bg: string; border: string; text: string }> = {
-  finalized: { bg: 'bg-green-50', border: 'border-green-300', text: 'text-green-800' },
-  complete: { bg: 'bg-yellow-50', border: 'border-yellow-300', text: 'text-yellow-800' },
+  complete: { bg: 'bg-green-50', border: 'border-green-300', text: 'text-green-800' },
   pending: { bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-800' },
 };
 
@@ -207,10 +204,6 @@ export function EventCalendarView({ events }: EventCalendarViewProps) {
       <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-600">
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded border border-green-300 bg-green-50"></span>
-          Afgesloten
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded border border-yellow-300 bg-yellow-50"></span>
           Compleet
         </div>
         <div className="flex items-center gap-1.5">
