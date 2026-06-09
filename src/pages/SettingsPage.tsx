@@ -336,9 +336,35 @@ export function SettingsPage() {
 
           <div>
             <div className="flex items-center gap-3 mb-2">
+              <span className="text-sm font-bold text-gray-900">v1.0.5</span>
+              <span className="text-xs text-gray-400">Juni 2026</span>
+              <span className="bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded">Huidig</span>
+            </div>
+            <ul className="text-sm text-gray-600 space-y-1 ml-4 list-disc">
+              <li>Fix: bevestigen van schipper is nu idempotent — opnieuw bevestigen geeft een nette melding in plaats van een fout</li>
+              <li>Fix: duidelijkere foutmelding bij netwerkproblemen tijdens bevestigen ("Verbindingsfout — ververs de pagina")</li>
+              <li>Betere backend logging van onverwachte HTTP-fouten</li>
+            </ul>
+          </div>
+
+          <div className="border-t border-gray-100 pt-4">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-sm font-bold text-gray-900">v1.0.4</span>
+              <span className="text-xs text-gray-400">Mei 2026</span>
+            </div>
+            <ul className="text-sm text-gray-600 space-y-1 ml-4 list-disc">
+              <li>Lijstweergave toegevoegd aan Events, Schippers en Boten pagina's</li>
+              <li>Historisch event aanmaken (voor events die al hebben plaatsgevonden)</li>
+              <li>Optionele notitie bij "misschien" reacties op uitnodigingen</li>
+              <li>Optionele schipper per boot in historisch event formulier</li>
+              <li>Coach zichtbaarheid verbeterd voor 'academie' en 'proces' event types</li>
+            </ul>
+          </div>
+
+          <div className="border-t border-gray-100 pt-4">
+            <div className="flex items-center gap-3 mb-2">
               <span className="text-sm font-bold text-gray-900">v1.0.3</span>
               <span className="text-xs text-gray-400">April 2026</span>
-              <span className="bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded">Huidig</span>
             </div>
             <ul className="text-sm text-gray-600 space-y-1 ml-4 list-disc">
               <li>Beveiliging: sessie tokens worden nu opgeslagen in beveiligde httpOnly cookies (niet meer toegankelijk via JavaScript)</li>

@@ -183,7 +183,19 @@ export function EventDetailPage() {
           toast.success(result.message);
           await loadEvent();
         } catch (error: any) {
-          toast.error(error.response?.data?.detail || 'Fout bij het bevestigen');
+          const isNetworkError = !error.response;
+          console.error('Confirm invitation error:', {
+            type: isNetworkError ? 'network' : 'api',
+            status: error.response?.status,
+            detail: error.response?.data?.detail,
+            code: error.code,
+            message: error.message,
+          });
+          if (isNetworkError) {
+            toast.error('Verbindingsfout — ververs de pagina om te zien of de bevestiging is doorgekomen');
+          } else {
+            toast.error(error.response?.data?.detail || 'Fout bij het bevestigen');
+          }
         } finally {
           setActionLoading(false);
         }
