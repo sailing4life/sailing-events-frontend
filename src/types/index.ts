@@ -39,6 +39,8 @@ export interface Skipper {
   is_skipper: boolean;
   is_coach: boolean;
   is_race_director: boolean;
+  email_bounced?: boolean;
+  email_complained?: boolean;
 }
 
 export interface EventBoat {
@@ -58,6 +60,7 @@ export interface Invitation {
   maybe_note?: string;
   invitation_sent_at?: string;
   response_received_at?: string;
+  email_delivered_at?: string;
 }
 
 export interface Event {

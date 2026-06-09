@@ -279,6 +279,8 @@ export function SkippersPage() {
                     <tr key={skipper.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium text-gray-900">
                         {skipper.first_name} {skipper.last_name}
+                        {skipper.email_bounced && <span className="ml-2 text-xs text-red-600 font-normal">(bounced)</span>}
+                        {skipper.email_complained && <span className="ml-2 text-xs text-orange-600 font-normal">(spam)</span>}
                       </td>
                       <td className="px-4 py-3 text-gray-700">{skipper.email}</td>
                       <td className="px-4 py-3 text-gray-700">{skipper.phone}</td>
@@ -319,6 +321,8 @@ export function SkippersPage() {
                   {skipper.first_name} {skipper.last_name}
                 </h3>
                 <p className="text-sm text-gray-500">{skipper.email}</p>
+                {skipper.email_bounced && <p className="text-xs text-red-600 font-medium mt-0.5">E-mail bounced — adres controleren</p>}
+                {skipper.email_complained && <p className="text-xs text-orange-600 font-medium mt-0.5">Spam-klacht ontvangen</p>}
               </div>
               <div className="flex items-center gap-2">
                 <button
