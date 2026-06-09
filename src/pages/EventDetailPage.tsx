@@ -899,6 +899,15 @@ export function EventDetailPage() {
                                         {invitation.skipper.first_name} {invitation.skipper.last_name}
                                       </p>
                                       <p className="text-sm text-gray-600">{invitation.skipper.email}</p>
+                                      {invitation.skipper.email_bounced && (
+                                        <p className="text-xs text-red-600 font-medium mt-1">E-mailadres ongeldig (bounced) — pas aan in schipperbeheer</p>
+                                      )}
+                                      {invitation.skipper.email_complained && (
+                                        <p className="text-xs text-orange-600 font-medium mt-1">Spam-klacht ontvangen — voorzichtig met mailen</p>
+                                      )}
+                                      {invitation.email_delivered_at && !invitation.skipper.email_bounced && (
+                                        <p className="text-xs text-green-600 mt-1">Bezorgd</p>
+                                      )}
                                       {invitation.skipper.notes && (
                                         <p className="text-sm text-gray-500 mt-1">
                                           Notities: {invitation.skipper.notes}
