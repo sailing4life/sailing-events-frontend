@@ -31,6 +31,8 @@ export function SkipperDetailsModal({ isOpen, skipper, onClose }: SkipperDetails
         return 'Middag';
       case 'half_day':
         return 'Halve dag';
+      case 'evening':
+        return 'Avond';
       case 'full_day':
         return 'Hele dag';
       default:

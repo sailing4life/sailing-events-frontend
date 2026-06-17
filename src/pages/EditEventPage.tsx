@@ -8,7 +8,7 @@ interface EventFormData {
   event_name: string;
   company_name: string;
   event_date: string;
-  duration: 'half_day' | 'morning' | 'afternoon' | 'full_day';
+  duration: 'half_day' | 'morning' | 'afternoon' | 'full_day' | 'evening';
   event_type: string;
   notes: string;
   start_time: string;
@@ -78,6 +78,7 @@ export function EditEventPage() {
   const defaultTimes: Record<string, { start: string; end: string }> = {
     morning:   { start: '09:00', end: '13:00' },
     afternoon: { start: '13:00', end: '17:00' },
+    evening:   { start: '18:00', end: '23:00' },
     full_day:  { start: '09:00', end: '17:00' },
     half_day:  { start: '09:00', end: '13:00' },
   };
@@ -195,6 +196,7 @@ export function EditEventPage() {
                 <option value="half_day">🕐 Halve dag</option>
                 <option value="morning">☀️ Ochtend</option>
                 <option value="afternoon">🌅 Middag</option>
+                <option value="evening">🌙 Avond</option>
                 <option value="full_day">📅 Hele dag</option>
               </select>
             </div>

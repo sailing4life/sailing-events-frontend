@@ -59,6 +59,7 @@ const getDurationLabel = (duration: string) => {
     'half_day': 'Halve dag',
     'morning': '☀️ Ochtend',
     'afternoon': '🌅 Middag',
+    'evening': '🌙 Avond',
     'full_day': '📅 Hele dag'
   };
   return labels[duration] || 'Hele dag';

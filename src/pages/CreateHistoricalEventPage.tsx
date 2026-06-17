@@ -23,6 +23,7 @@ interface HistoricalEventFormData {
 const durationOptions: Array<{ value: EventDuration; label: string }> = [
   { value: 'morning', label: 'Ochtend' },
   { value: 'afternoon', label: 'Middag' },
+  { value: 'evening', label: 'Avond' },
   { value: 'full_day', label: 'Hele dag' },
 ];
 

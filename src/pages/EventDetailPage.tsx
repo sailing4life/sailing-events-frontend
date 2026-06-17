@@ -69,7 +69,7 @@ export function EventDetailPage() {
     event_name: '',
     company_name: '',
     event_date: '',
-    duration: 'full_day' as 'half_day' | 'morning' | 'afternoon' | 'full_day',
+    duration: 'full_day' as 'half_day' | 'morning' | 'afternoon' | 'full_day' | 'evening',
     event_type: '' as string,
     notes: '',
     required_race_directors: 0,
@@ -166,7 +166,7 @@ export function EventDetailPage() {
       if (!confirmed) return;
     }
     const skipper = invitation.skipper;
-    const isHalfDay = ['half_day', 'morning', 'afternoon'].includes(event.duration);
+    const isHalfDay = ['half_day', 'morning', 'afternoon', 'evening'].includes(event.duration);
     const defaultRate = isHalfDay ? (skipper.half_day_rate ?? 0) : (skipper.full_day_rate ?? 0);
     const name = `${skipper.first_name} ${skipper.last_name}`;
 
@@ -312,7 +312,7 @@ export function EventDetailPage() {
   const handleDirectConfirm = async (assignments: Array<{ skipper_id: number; role: string }>) => {
     if (!id || !event) return;
 
-    const isHalfDay = ['half_day', 'morning', 'afternoon'].includes(event.duration);
+    const isHalfDay = ['half_day', 'morning', 'afternoon', 'evening'].includes(event.duration);
 
     const participants = assignments.map(a => {
       const skipper = skippers.find(s => s.id === a.skipper_id);
@@ -716,7 +716,8 @@ export function EventDetailPage() {
                 <p className="font-medium text-gray-900">
                   {event.duration === 'morning' ? '☀️ Ochtend' :
                    event.duration === 'afternoon' ? '🌅 Middag' :
-                   event.duration === 'half_day' ? 'Halve dag' : '📅 Hele dag'}
+                   event.duration === 'half_day' ? 'Halve dag' :
+                   event.duration === 'evening' ? '🌙 Avond' : '📅 Hele dag'}
                 </p>
               </div>
               <div>
@@ -1150,12 +1151,13 @@ export function EventDetailPage() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Duur</label>
                       <select
                         value={editFormData.duration}
-                        onChange={(e) => setEditFormData(prev => ({ ...prev, duration: e.target.value as 'half_day' | 'morning' | 'afternoon' | 'full_day' }))}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, duration: e.target.value as 'half_day' | 'morning' | 'afternoon' | 'full_day' | 'evening' }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                       >
                         <option value="">-- Selecteer duur --</option>
                         <option value="morning">☀️ Ochtend</option>
                         <option value="afternoon">🌅 Middag</option>
+                        <option value="evening">🌙 Avond</option>
                         <option value="full_day">📅 Hele dag</option>
                       </select>
                     </div>
@@ -1394,7 +1396,7 @@ export function EventDetailPage() {
                                 </p>
                               )}
                               <p className="text-xs text-gray-500 mt-1">
-                                Tarief: €{event.duration === 'half_day' ? skipper.half_day_rate : skipper.full_day_rate}
+                                Tarief: €{['half_day', 'morning', 'afternoon', 'evening'].includes(event.duration) ? skipper.half_day_rate : skipper.full_day_rate}
                               </p>
                             </div>
                             {inviteRole === 'head_skipper' && selectedHeadSkipper === skipper.id && (
