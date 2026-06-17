@@ -8,7 +8,7 @@ interface EventFormData {
   event_name: string;
   company_name: string;
   event_date: string;
-  duration: 'half_day' | 'morning' | 'afternoon' | 'full_day';
+  duration: 'half_day' | 'morning' | 'afternoon' | 'full_day' | 'evening';
   event_type: string;
   notes: string;
   start_time: string;
@@ -87,6 +87,7 @@ export function CreateEventPage() {
     afternoon: { start: '13:00', end: '17:00' },
     full_day:  { start: '09:00', end: '17:00' },
     half_day:  { start: '09:00', end: '13:00' },
+    evening: {start: '18:00', end: '23:00' }
   };
 
   const handleDurationChange = (duration: string) => {
@@ -305,7 +306,10 @@ export function CreateEventPage() {
                   <option value="">-- Selecteer duur --</option>
                   <option value="morning">☀️ Ochtend</option>
                   <option value="afternoon">🌅 Middag</option>
+                  <option value="evening">📅 Avond</option>
                   <option value="full_day">📅 Hele dag</option>
+                  
+
                 </select>
               </div>
             </div>
@@ -483,7 +487,7 @@ export function CreateEventPage() {
                     {skipper.first_name} {skipper.last_name}
                   </p>
                   <p className="text-sm text-gray-600">
-                    €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
+                    €{['morning', 'afternoon', 'half_day', 'evening'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
                   </p>
                   {skipper.notes && (
                     <p className="text-xs text-gray-500 mt-1">
@@ -705,7 +709,8 @@ export function CreateEventPage() {
                     <span className="font-medium">
                       {formData.duration === 'morning' ? '☀️ Ochtend' :
                        formData.duration === 'afternoon' ? '🌅 Middag' :
-                       formData.duration === 'half_day' ? 'Halve dag' : '📅 Hele dag'}
+                       formData.duration === 'half_day' ? 'Halve dag' :
+                       formData.duration === 'evening' ? '🌙 Avond' : '📅 Hele dag'}
                     </span>
                   </div>
                 </div>
@@ -741,7 +746,7 @@ export function CreateEventPage() {
                           )}
                         </div>
                           <span className="text-sm font-medium text-gray-700">
-                            €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
+                            €{['morning', 'afternoon', 'half_day', 'evening'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
                           </span>
                         </div>
                       );
@@ -770,7 +775,7 @@ export function CreateEventPage() {
                           )}
                         </div>
                         <span className="text-sm font-medium text-gray-700">
-                          €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
+                          €{['morning', 'afternoon', 'half_day', 'evening'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
                         </span>
                       </div>
                     );
@@ -799,7 +804,7 @@ export function CreateEventPage() {
                           )}
                         </div>
                           <span className="text-sm font-medium text-gray-700">
-                            €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
+                            €{['morning', 'afternoon', 'half_day', 'evening'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
                           </span>
                         </div>
                       );
@@ -829,7 +834,7 @@ export function CreateEventPage() {
                           )}
                         </div>
                           <span className="text-sm font-medium text-gray-700">
-                            €{['morning', 'afternoon', 'half_day'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
+                            €{['morning', 'afternoon', 'half_day', 'evening'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
                           </span>
                         </div>
                       );

@@ -7,6 +7,7 @@ const DURATION_LABEL: Record<string, string> = {
   half_day: 'Halve dag',
   morning: 'Ochtend',
   afternoon: 'Middag',
+  evening: 'Avond',
   full_day: 'Hele dag',
 };
 

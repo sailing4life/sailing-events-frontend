@@ -143,7 +143,7 @@ export function DirectConfirmModal({
                         </p>
                         <p className="text-sm text-gray-600">{skipper.email}</p>
                         <p className="text-xs text-gray-500 mt-1">
-                          Tarief: €{event.duration === 'half_day' || event.duration === 'morning' || event.duration === 'afternoon'
+                          Tarief: €{event.duration === 'half_day' || event.duration === 'morning' || event.duration === 'afternoon' || event.duration === 'evening'
                             ? skipper.half_day_rate
                             : skipper.full_day_rate}
                         </p>

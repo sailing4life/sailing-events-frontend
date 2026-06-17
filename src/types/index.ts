@@ -1,4 +1,4 @@
-export type EventDuration = 'half_day' | 'morning' | 'afternoon' | 'full_day';
+export type EventDuration = 'half_day' | 'morning' | 'afternoon' | 'full_day' | 'evening';
 export type EventType = string;
 export type ResponseStatus = 'pending' | 'yes' | 'no' | 'maybe';
 export type EventWorkflowPhase = 'invitation' | 'finalized';
