@@ -79,10 +79,15 @@ export function EventCard({ event, eventTypeLabels }: EventCardProps) {
 
   if (useInvitations) {
     // New workflow: count available skippers (excluding race directors and coaches)
+    // Coaches who are also skippers (is_skipper=true) count toward boat coverage
     const skipperInvitations = invitations.filter(inv => inv.role !== 'race_director' && inv.role !== 'coach');
     const raceDirectorInvitations = invitations.filter(inv => inv.role === 'race_director');
     const coachInvitations = invitations.filter(inv => inv.role === 'coach');
-    const skipperAvailable = skipperInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
+    const coachSkipperInvitations = coachInvitations.filter(inv => inv.skipper.is_skipper);
+    const skipperAvailable = [
+      ...skipperInvitations,
+      ...coachSkipperInvitations,
+    ].filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
     const raceDirectorAvailable = raceDirectorInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
     const coachAvailable = coachInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
     const requiredSkippers = event.event_boats.length;
@@ -159,19 +164,22 @@ export function EventCard({ event, eventTypeLabels }: EventCardProps) {
             {/* Schippers */}
             {(() => {
               const skipperInvs = invitations.filter(inv => inv.role === 'skipper' || inv.role === 'head_skipper');
-              const confirmed = skipperInvs.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
+              const coachSkipperInvs = invitations.filter(inv => inv.role === 'coach' && inv.skipper.is_skipper);
+              const allSkipperInvs = [...skipperInvs, ...coachSkipperInvs];
+              const confirmed = allSkipperInvs.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
               const required = event.event_boats.length;
-              return skipperInvs.length > 0 ? (
+              return allSkipperInvs.length > 0 ? (
                 <div>
                   <p className="text-xs text-gray-500 mb-1 font-medium">
                     ⛵ Schippers <span className={confirmed >= required ? 'text-green-600' : 'text-amber-600'}>{confirmed}/{required}</span>
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {skipperInvs.map((inv) => (
+                    {allSkipperInvs.map((inv) => (
                       <div key={inv.id} className="flex items-center space-x-1">
                         <span className="text-sm text-gray-700">
                           {inv.skipper.first_name} {inv.skipper.last_name}
                           {inv.role === 'head_skipper' && ' 👑'}
+                          {inv.role === 'coach' && ' 🏅'}
                         </span>
                         {getInvitationStatusBadge(inv.status)}
                       </div>

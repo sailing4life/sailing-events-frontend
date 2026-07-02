@@ -568,11 +568,12 @@ export function EventDetailPage() {
   const statusInvitations = invitations.filter(inv => inv.role !== 'race_director' && inv.role !== 'coach');
   const raceDirectorInvitations = invitations.filter(inv => inv.role === 'race_director');
   const coachInvitations = invitations.filter(inv => inv.role === 'coach');
+  const coachSkipperInvitations = coachInvitations.filter(inv => inv.skipper.is_skipper);
   const invitedSkipperIds = new Set(invitations.map(inv => inv.skipper.id));
 
-  // Calculate invitation statistics
-  const availableSkippers = statusInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
-  const confirmedSkippers = statusInvitations.filter(inv => inv.status === 'confirmed').length;
+  // Calculate invitation statistics — coaches who are also skipper count toward boat coverage
+  const availableSkippers = [...statusInvitations, ...coachSkipperInvitations].filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
+  const confirmedSkippers = [...statusInvitations, ...coachSkipperInvitations].filter(inv => inv.status === 'confirmed').length;
   const availableRaceDirectors = raceDirectorInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
   const confirmedRaceDirectors = raceDirectorInvitations.filter(inv => inv.status === 'confirmed').length;
   const availableCoaches = coachInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;

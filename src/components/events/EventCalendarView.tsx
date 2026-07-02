@@ -26,9 +26,11 @@ function getEventStatus(event: Event): 'complete' | 'pending' {
     const skipperInvitations = invitations.filter(inv => inv.role !== 'race_director' && inv.role !== 'coach');
     const raceDirectorInvitations = invitations.filter(inv => inv.role === 'race_director');
     const coachInvitations = invitations.filter(inv => inv.role === 'coach');
-    const skipperAvailable = skipperInvitations.filter(
-      inv => inv.status === 'available' || inv.status === 'confirmed'
-    ).length;
+    const coachSkipperInvitations = coachInvitations.filter(inv => inv.skipper.is_skipper);
+    const skipperAvailable = [
+      ...skipperInvitations,
+      ...coachSkipperInvitations,
+    ].filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
     const raceDirectorAvailable = raceDirectorInvitations.filter(
       inv => inv.status === 'available' || inv.status === 'confirmed'
     ).length;
