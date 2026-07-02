@@ -34,6 +34,25 @@ function getAvailableUnconfirmed(invitations: Invitation[]) {
   return invitations.filter((i) => i.status === 'available');
 }
 
+function isEventComplete(event: Event): boolean {
+  const invitations = Array.isArray(event.invitations) ? event.invitations : [];
+  if (invitations.length === 0) return false;
+  const skipperInvs = invitations.filter(inv => inv.role !== 'race_director' && inv.role !== 'coach');
+  const coachInvs = invitations.filter(inv => inv.role === 'coach');
+  const rdInvs = invitations.filter(inv => inv.role === 'race_director');
+  const coachSkipperInvs = coachInvs.filter(inv => inv.skipper.is_skipper);
+  const availableSkippers = [...skipperInvs, ...coachSkipperInvs].filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
+  const availableRDs = rdInvs.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
+  const availableCoaches = coachInvs.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
+  const requiredSkippers = Array.isArray(event.event_boats) ? event.event_boats.length : 0;
+  const requiredRDs = event.required_race_directors || 0;
+  const requiredCoaches = event.required_coaches || 0;
+  return requiredSkippers > 0
+    && availableSkippers >= requiredSkippers
+    && availableRDs >= requiredRDs
+    && availableCoaches >= requiredCoaches;
+}
+
 function getPendingInvitations(invitations: Invitation[]) {
   return invitations.filter((i) => i.status === 'pending');
 }
@@ -83,7 +102,7 @@ export function DashboardPage() {
   );
 
   const awaitingResponse = futureEvents.filter(
-    (e) => e.workflow_phase === 'invitation' && getPendingInvitations(e.invitations).length > 0
+    (e) => e.workflow_phase === 'invitation' && getPendingInvitations(e.invitations).length > 0 && !isEventComplete(e)
   );
 
   // Count people (not events) for the summary cards
@@ -184,7 +203,7 @@ export function DashboardPage() {
                 {futureEvents.slice(0, 12).map((event) => (
                   <EventRow key={event.id} event={event}>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 3 }}>
-                      <PhaseChip phase={event.workflow_phase} />
+                      <PhaseChip phase={event.workflow_phase} event={event} />
                       {event.invitations.length > 0 && (
                         <span style={{ fontSize: 12, color: '#64748b' }}>
                           {event.invitations.filter((i) => i.status === 'confirmed').length}/{event.invitations.length} bevestigd
@@ -302,8 +321,8 @@ function DaysBadge({ days }: { days: number }) {
   return <span style={{ flexShrink: 0, fontSize: 11, color: '#94a3b8', background: '#f8fafc', padding: '2px 7px', borderRadius: 10 }}>over {days} d</span>;
 }
 
-function PhaseChip({ phase }: { phase: string }) {
-  if (phase === 'finalized') {
+function PhaseChip({ phase, event }: { phase: string; event: Event }) {
+  if (phase === 'finalized' || isEventComplete(event)) {
     return <StatusBadge label="Compleet" color="#047857" bg="#ecfdf5" />;
   }
   return <StatusBadge label="Uitvraag loopt" color="#7c3aed" bg="#f5f3ff" />;
