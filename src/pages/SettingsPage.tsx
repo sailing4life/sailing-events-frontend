@@ -336,9 +336,20 @@ export function SettingsPage() {
 
           <div>
             <div className="flex items-center gap-3 mb-2">
+              <span className="text-sm font-bold text-gray-900">v1.0.6</span>
+              <span className="text-xs text-gray-400">Augustus 2026</span>
+              <span className="bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded">Huidig</span>
+            </div>
+            <ul className="text-sm text-gray-600 space-y-1 ml-4 list-disc">
+              <li>Interne notities toegevoegd aan events voor interne afspraken, aandachtspunten en planning</li>
+              <li>Interne notities zijn beschikbaar bij nieuw event, historisch event, event bewerken en op de event detailpagina</li>
+            </ul>
+          </div>
+
+          <div className="border-t border-gray-100 pt-4">
+            <div className="flex items-center gap-3 mb-2">
               <span className="text-sm font-bold text-gray-900">v1.0.5</span>
               <span className="text-xs text-gray-400">Juni 2026</span>
-              <span className="bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded">Huidig</span>
             </div>
             <ul className="text-sm text-gray-600 space-y-1 ml-4 list-disc">
               <li>Fix: bevestigen van schipper is nu idempotent — opnieuw bevestigen geeft een nette melding in plaats van een fout</li>
