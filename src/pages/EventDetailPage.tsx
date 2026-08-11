@@ -72,6 +72,7 @@ export function EventDetailPage() {
     duration: 'full_day' as 'half_day' | 'morning' | 'afternoon' | 'full_day' | 'evening',
     event_type: '' as string,
     notes: '',
+    internal_notes: '',
     required_race_directors: 0,
     required_coaches: 0,
     selected_boats: [] as number[],
@@ -500,6 +501,7 @@ export function EventDetailPage() {
       duration: event.duration,
       event_type: event.event_type,
       notes: event.notes || '',
+      internal_notes: event.internal_notes || '',
       required_race_directors: event.required_race_directors || 0,
       required_coaches: event.required_coaches || 0,
       selected_boats: event.event_boats.map(eb => eb.boat.id),
@@ -519,6 +521,7 @@ export function EventDetailPage() {
         duration: editFormData.duration,
         event_type: editFormData.event_type,
         notes: editFormData.notes || undefined,
+        internal_notes: editFormData.internal_notes || undefined,
         required_race_directors: editFormData.required_race_directors,
         required_coaches: editFormData.required_coaches,
         boat_ids: editFormData.selected_boats,
@@ -746,6 +749,12 @@ export function EventDetailPage() {
               <div className="mt-4 pt-4 border-t">
                 <p className="text-sm text-gray-600 mb-1">Notities</p>
                 <p className="text-gray-900">{event.notes}</p>
+              </div>
+            )}
+            {event.internal_notes && (
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-sm text-gray-600 mb-1">Interne notities</p>
+                <p className="text-gray-900 whitespace-pre-wrap">{event.internal_notes}</p>
               </div>
             )}
           </div>
@@ -1215,6 +1224,16 @@ export function EventDetailPage() {
                         onChange={(e) => setEditFormData(prev => ({ ...prev, notes: e.target.value }))}
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Interne notities</label>
+                      <textarea
+                        value={editFormData.internal_notes}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, internal_notes: e.target.value }))}
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                        placeholder="Alleen voor intern gebruik"
                       />
                     </div>
                   </div>
