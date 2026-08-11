@@ -172,7 +172,7 @@ export function SkipperDetailsModal({ isOpen, skipper, onClose }: SkipperDetails
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Event historie</h3>
                 {history.length === 0 ? (
-                  <p className="text-sm text-gray-500">Nog geen events gevonden.</p>
+                  <p className="text-sm text-gray-500">Nog geen bevestigde events gevonden.</p>
                 ) : (
                   <div className="space-y-2">
                     {history.map((item) => (
