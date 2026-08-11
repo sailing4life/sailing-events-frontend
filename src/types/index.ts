@@ -71,6 +71,7 @@ export interface Event {
   duration: EventDuration;
   event_type: EventType;
   notes?: string;
+  internal_notes?: string;
   start_time?: string;
   end_time?: string;
   required_race_directors: number;
@@ -100,6 +101,7 @@ export interface HistoricalEventCreateInput {
   duration: EventDuration;
   event_type: EventType;
   notes?: string;
+  internal_notes?: string;
   required_race_directors: number;
   required_coaches: number;
   boat_assignments: HistoricalBoatAssignmentInput[];

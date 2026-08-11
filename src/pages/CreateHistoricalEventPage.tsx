@@ -11,6 +11,7 @@ interface HistoricalEventFormData {
   duration: EventDuration;
   event_type: string;
   notes: string;
+  internal_notes: string;
   required_race_directors: number;
   required_coaches: number;
   selected_boat_ids: number[];
@@ -41,6 +42,7 @@ export function CreateHistoricalEventPage() {
     duration: 'full_day',
     event_type: '',
     notes: '',
+    internal_notes: '',
     required_race_directors: 0,
     required_coaches: 0,
     selected_boat_ids: [],
@@ -162,6 +164,7 @@ export function CreateHistoricalEventPage() {
       duration: formData.duration,
       event_type: formData.event_type,
       notes: formData.notes || undefined,
+      internal_notes: formData.internal_notes || undefined,
       required_race_directors: formData.required_race_directors,
       required_coaches: formData.required_coaches,
       boat_assignments: selectedAssignments.map(({ boat, skipperId }) => ({
@@ -331,6 +334,17 @@ export function CreateHistoricalEventPage() {
               rows={3}
               className="input-field"
               placeholder="Optionele context over dit historische event"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Interne notities</label>
+            <textarea
+              value={formData.internal_notes}
+              onChange={(e) => setFormData((prev) => ({ ...prev, internal_notes: e.target.value }))}
+              rows={4}
+              className="input-field"
+              placeholder="Interne context, afspraken of bijzonderheden"
             />
           </div>
         </section>

@@ -201,6 +201,7 @@ export const eventsApi = {
     duration: string;
     event_type: string;
     notes?: string;
+    internal_notes?: string;
     start_time?: string;
     end_time?: string;
     required_race_directors: number;
@@ -224,6 +225,7 @@ export const eventsApi = {
     duration: string;
     event_type: string;
     notes?: string;
+    internal_notes?: string;
     start_time?: string;
     end_time?: string;
     required_race_directors: number;

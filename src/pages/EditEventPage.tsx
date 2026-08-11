@@ -11,6 +11,7 @@ interface EventFormData {
   duration: 'half_day' | 'morning' | 'afternoon' | 'full_day' | 'evening';
   event_type: string;
   notes: string;
+  internal_notes: string;
   start_time: string;
   end_time: string;
   required_race_directors: number;
@@ -32,6 +33,7 @@ export function EditEventPage() {
     duration: 'full_day',
     event_type: '',
     notes: '',
+    internal_notes: '',
     start_time: '',
     end_time: '',
     required_race_directors: 0,
@@ -61,6 +63,7 @@ export function EditEventPage() {
         duration: eventData.duration,
         event_type: eventData.event_type,
         notes: eventData.notes || '',
+        internal_notes: eventData.internal_notes || '',
         start_time: eventData.start_time || '',
         end_time: eventData.end_time || '',
         required_race_directors: eventData.required_race_directors || 0,
@@ -101,6 +104,7 @@ export function EditEventPage() {
         duration: formData.duration,
         event_type: formData.event_type,
         notes: formData.notes || undefined,
+        internal_notes: formData.internal_notes || undefined,
         start_time: formData.start_time || undefined,
         end_time: formData.end_time || undefined,
         required_race_directors: formData.required_race_directors,
@@ -267,6 +271,17 @@ export function EditEventPage() {
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="input-field"
               rows={4}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Interne notities (optioneel)</label>
+            <textarea
+              value={formData.internal_notes}
+              onChange={(e) => setFormData({ ...formData, internal_notes: e.target.value })}
+              className="input-field"
+              rows={5}
+              placeholder="Alleen voor intern gebruik"
             />
           </div>
 

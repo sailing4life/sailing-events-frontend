@@ -11,6 +11,7 @@ interface EventFormData {
   duration: 'half_day' | 'morning' | 'afternoon' | 'full_day' | 'evening';
   event_type: string;
   notes: string;
+  internal_notes: string;
   start_time: string;
   end_time: string;
   required_race_directors: number;
@@ -40,6 +41,7 @@ export function CreateEventPage() {
     duration: 'full_day',
     event_type: '',
     notes: '',
+    internal_notes: '',
     start_time: '09:00',
     end_time: '17:00',
     required_race_directors: 0,
@@ -114,6 +116,7 @@ export function CreateEventPage() {
         duration: formData.duration,
         event_type: formData.event_type,
         notes: formData.notes || undefined,
+        internal_notes: formData.internal_notes || undefined,
         start_time: formData.start_time || undefined,
         end_time: formData.end_time || undefined,
         required_race_directors: formData.required_race_directors,
@@ -412,6 +415,17 @@ export function CreateEventPage() {
                 className="input-field"
                 rows={3}
                 placeholder="Extra informatie over het event..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Interne notities (optioneel)</label>
+              <textarea
+                value={formData.internal_notes}
+                onChange={(e) => setFormData({ ...formData, internal_notes: e.target.value })}
+                className="input-field"
+                rows={4}
+                placeholder="Interne afspraken, aandachtspunten of planning..."
               />
             </div>
           </div>
