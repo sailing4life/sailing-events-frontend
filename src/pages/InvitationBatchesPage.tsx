@@ -1,10 +1,10 @@
 import { InvitationMatrix } from '../components/InvitationMatrix';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { eventsApi, skippersApi } from '../services/api';
+import { eventsApi, skippersApi, eventTypesApi } from '../services/api';
 import { batchesApi, errorMessage } from '../services/planningApi';
 import type { Batch, Selection } from '../services/planningApi';
-import type { Event, Skipper } from '../types';
+import type { Event, Skipper, EventTypeConfig } from '../types';
 
 const button = 'rounded-lg bg-ocean-600 px-4 py-2 font-medium text-white disabled:opacity-50';
 const states: Record<string, string> = { draft: 'Klaar voor verzending', sending: 'Verzending gestart', sent: 'Verstuurd', failed: 'Niet verstuurd', unknown: 'Controle nodig', skipped: 'Overgeslagen: niet meer van toepassing' };
@@ -12,6 +12,7 @@ const dateNL = (value: string) => new Date(`${value}T12:00:00`).toLocaleDateStri
 
 export function InvitationBatchesPage() {
   const [events, setEvents] = useState<Event[]>([]);
+  const [eventTypes, setEventTypes] = useState<EventTypeConfig[]>([]);
   const [skippers, setSkippers] = useState<Skipper[]>([]);
   const [batches, setBatches] = useState<Batch[]>([]);
   const [month, setMonth] = useState(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; });
@@ -23,8 +24,8 @@ export function InvitationBatchesPage() {
   const [message, setMessage] = useState('');
 
   async function refresh() {
-    const [e, s, b] = await Promise.all([eventsApi.getAll(), skippersApi.getAll(), batchesApi.list()]);
-    setEvents(e); setSkippers(s); setBatches(b);
+    const [e, s, b, t] = await Promise.all([eventsApi.getAll(), skippersApi.getAll(), batchesApi.list(), eventTypesApi.getAll(true)]);
+    setEvents(e); setSkippers(s); setBatches(b); setEventTypes(t);
   }
   useEffect(() => { refresh().catch(e => setError(errorMessage(e))).finally(() => setLoading(false)); }, []);
   async function action(work: () => Promise<void>) {
@@ -42,7 +43,7 @@ export function InvitationBatchesPage() {
         <h2 className="text-lg font-semibold">1. Kies de maand en uitnodigingen</h2>
         <label className="my-4 block">Maand<input type="month" className="ml-3 rounded-lg border p-2" value={month} disabled={busy} onChange={e => { setMonth(e.target.value); setSelections([]); setPreview(null); }} /></label>
         {!availableEvents.length && <p className="text-gray-500">Geen toekomstige open events in deze maand.</p>}
-        {availableEvents.length > 0 && <InvitationMatrix key={`${month}-${batches.length}`} events={availableEvents} skippers={skippers} batches={batches} selections={selections} onChange={setSelections} disabled={busy} />}
+        {availableEvents.length > 0 && <InvitationMatrix key={`${month}-${batches.length}`} events={availableEvents} eventTypes={eventTypes} skippers={skippers} batches={batches} selections={selections} onChange={setSelections} disabled={busy} />}
         <div className="sticky bottom-3 z-30 mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-white p-4 shadow-lg"><button className={button} disabled={busy || selections.length === 0} onClick={() => action(async () => {
           const batch = await batchesApi.prepare(month, selections); setPreview(batch); setSelections([]); await refresh();
         })}>Uitvraag voorbereiden</button><span className="text-sm text-gray-600">{selections.length} uitnodigingen · {new Set(selections.map(s => s.skipper_id)).size} persoonlijke mails</span></div>

@@ -1,20 +1,25 @@
 import { useState } from 'react';
-import type { Event, Skipper, InvitationRole } from '../types';
+import type { Event, Skipper, InvitationRole, EventTypeConfig } from '../types';
 import type { Batch, Selection } from '../services/planningApi';
 import { roles, durations } from '../services/planningApi';
 
-type Props = { events: Event[]; skippers: Skipper[]; batches: Batch[]; selections: Selection[];
+type Props = { events: Event[]; eventTypes: EventTypeConfig[]; skippers: Skipper[]; batches: Batch[]; selections: Selection[];
   onChange: (items: Selection[]) => void; disabled: boolean };
 const supported = (s: Skipper, role: InvitationRole) => role === 'coach' ? s.is_coach : role === 'race_director' ? s.is_race_director : s.is_skipper;
 
-export function InvitationMatrix({ events, skippers, batches, selections, onChange, disabled }: Props) {
+export function InvitationMatrix({ events, eventTypes, skippers, batches, selections, onChange, disabled }: Props) {
   const [search, setSearch] = useState('');
   const [role, setRole] = useState<InvitationRole>('skipper');
   const [selectedOnly, setSelectedOnly] = useState(false);
   const [eventFilter, setEventFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
   const [undo, setUndo] = useState<Selection[] | null>(null);
   const chosen = new Map(selections.map(s => [`${s.event_id}:${s.skipper_id}`, s]));
-  const visibleEvents = [...events].sort((a, b) => a.event_date.localeCompare(b.event_date)).filter(e => !eventFilter || e.id === Number(eventFilter));
+  const typeLabel = (code: string) => eventTypes.find(t => t.code === code)?.label || code;
+  const monthTypes = [...new Set(events.map(e => e.event_type))].sort((a, b) => typeLabel(a).localeCompare(typeLabel(b), 'nl'));
+  const typeEvents = [...events].sort((a, b) => a.event_date.localeCompare(b.event_date)).filter(e => !typeFilter || e.event_type === typeFilter);
+  const visibleEvents = typeEvents.filter(e => !eventFilter || e.id === Number(eventFilter));
+  const hiddenSelections = selections.filter(s => !visibleEvents.some(e => e.id === s.event_id)).length;
   const people = skippers.filter(s => s.is_active && supported(s, role)
     && `${s.first_name} ${s.last_name} ${s.email}`.toLowerCase().includes(search.toLowerCase())
     && (!selectedOnly || selections.some(v => v.skipper_id === s.id)))
@@ -38,15 +43,17 @@ export function InvitationMatrix({ events, skippers, batches, selections, onChan
   const additionsCount = visibleEvents.reduce((sum, e) => sum + people.filter(s => !reserved(e, s) && !chosen.has(`${e.id}:${s.id}`)).length, 0);
 
   return <div className="space-y-4">
-    <div className="grid gap-3 lg:grid-cols-[1fr_200px_220px]">
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <label className="text-sm font-medium text-slate-600">Zoek schipper<input type="search" placeholder="Naam of e-mailadres…" value={search} onChange={e => setSearch(e.target.value)} className="mt-1 block w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5" /></label>
       <label className="text-sm font-medium text-slate-600">Uitnodigen als<select value={role} onChange={e => setRole(e.target.value as InvitationRole)} className="mt-1 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5">{Object.entries(roles).map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>
-      <label className="text-sm font-medium text-slate-600">Events<select value={eventFilter} onChange={e => setEventFilter(e.target.value)} className="mt-1 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5"><option value="">Alle events in deze maand</option>{events.map(e => <option key={e.id} value={e.id}>{e.event_name}</option>)}</select></label>
+      <label className="text-sm font-medium text-slate-600">Eventtype<select value={typeFilter} onChange={e => { setTypeFilter(e.target.value); setEventFilter(''); }} className="mt-1 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5"><option value="">Alle eventtypes</option>{monthTypes.map(code => <option key={code} value={code}>{typeLabel(code)} ({events.filter(e => e.event_type === code).length})</option>)}</select></label>
+      <label className="text-sm font-medium text-slate-600">Events<select value={eventFilter} onChange={e => setEventFilter(e.target.value)} className="mt-1 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5"><option value="">{typeFilter ? `Alle events: ${typeLabel(typeFilter)}` : 'Alle events in deze maand'}</option>{typeEvents.map(e => <option key={e.id} value={e.id}>{e.event_name} — {typeLabel(e.event_type)}</option>)}</select></label>
     </div>
     <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
       <label className="flex items-center gap-2"><input type="checkbox" checked={selectedOnly} onChange={e => setSelectedOnly(e.target.checked)} />Alleen personen met een selectie</label>
       <span className="text-slate-500">{people.length} personen · {visibleEvents.length} events</span>
     </div>
+    {hiddenSelections > 0 && <p role="status" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{hiddenSelections} eerder gekozen uitnodigingen vallen buiten het eventfilter. Ze blijven onderdeel van de uitvraag. <button className="font-medium underline" onClick={() => { setTypeFilter(''); setEventFilter(''); }}>Alle events tonen</button></p>}
     <div className="flex flex-wrap items-center gap-3 rounded-lg bg-ocean-50 p-3 text-sm">
       <button disabled={disabled || !additionsCount} onClick={() => addMany(visibleEvents, people)} className="rounded-md bg-white px-3 py-2 font-semibold text-ocean-800 shadow-sm disabled:opacity-40">Zichtbare personen voor alle getoonde events toevoegen ({additionsCount})</button>
       <button disabled={disabled || !selections.length} onClick={() => change([])} className="px-2 py-2 text-slate-600 underline disabled:opacity-40">Selectie wissen</button>
@@ -60,6 +67,7 @@ export function InvitationMatrix({ events, skippers, batches, selections, onChan
           {visibleEvents.map(e => <th key={e.id} scope="col" className="min-w-[190px] max-w-[230px] border-b border-r border-slate-200 bg-slate-50 p-3 text-left align-top">
             <span className="text-xs font-semibold uppercase tracking-wide text-ocean-700">{new Date(`${e.event_date}T12:00:00`).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', weekday: 'short' })}</span>
             <span className="mt-1 block font-semibold text-slate-900">{e.event_name}</span>
+            <span className="mt-2 inline-block rounded bg-ocean-100 px-2 py-0.5 text-xs font-medium text-ocean-800">{typeLabel(e.event_type)}</span>
             <span className="mt-1 block text-xs font-normal text-slate-500">{e.start_time && e.end_time ? `${e.start_time.slice(0, 5)} – ${e.end_time.slice(0, 5)}` : durations[e.duration]}</span>
             <span className="mt-2 block text-xs font-normal text-slate-600">{selections.filter(v => v.event_id === e.id).length} geselecteerd</span>
             <button disabled={disabled || !people.some(s => !reserved(e, s) && !chosen.has(`${e.id}:${s.id}`))} onClick={() => addMany([e], people)} className="mt-2 text-xs font-medium text-ocean-700 underline disabled:opacity-40">Iedereen toevoegen</button>
