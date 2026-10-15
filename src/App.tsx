@@ -19,17 +19,21 @@ import { DashboardPage } from './pages/DashboardPage';
 import { InfoPage } from './pages/InfoPage';
 import { DocumentsPage } from './pages/DocumentsPage';
 import { DocViewerPage } from './pages/DocViewerPage';
+import { MyPlanningPage } from './pages/MyPlanningPage';
+import { InvitationBatchesPage } from './pages/InvitationBatchesPage';
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          <Route path="/mijn-planning" element={<MyPlanningPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/respons" element={<ResponsPage />} />
           <Route path="/doc/:token" element={<DocViewerPage />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<DashboardPage />} />
+            <Route path="maanduitvragen" element={<InvitationBatchesPage />} />
             <Route path="events" element={<EventsPage />} />
             <Route path="events/new" element={<CreateEventPage />} />
             <Route path="events/new/historical" element={<CreateHistoricalEventPage />} />

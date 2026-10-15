@@ -87,7 +87,8 @@ export function Navigation() {
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex space-x-1">
+        <div className="flex space-x-1 overflow-x-auto">
+          <NavLink to="/maanduitvragen" className={({ isActive }) => `whitespace-nowrap px-3 py-4 text-sm font-medium border-b-2 ${isActive ? 'border-ocean-600 text-ocean-600' : 'border-transparent text-gray-500'}`}>Maanduitvragen</NavLink>
 
           <NavLink
             to="/"
