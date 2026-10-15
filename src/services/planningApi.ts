@@ -10,7 +10,7 @@ export interface PlanningInvitation {
   start_time: string | null; end_time: string | null; role: InvitationRole; status: InvitationStatus;
   note: string; can_respond: boolean; boats: string[]; withdrawal_requested: boolean;
 }
-export interface Planning { name: string; invitations: PlanningInvitation[] }
+export interface Planning { name: string; invitations: PlanningInvitation[]; history?: PlanningInvitation[] }
 export interface Selection { event_id: number; skipper_id: number; role: InvitationRole }
 export interface Batch {
   id: string; month: string; kind: string;
