@@ -33,7 +33,9 @@ export function InvitationBatchesPage() {
     try { await work(); } catch (e) { setError(errorMessage(e)); } finally { setBusy(false); }
   }
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
-  const availableEvents = events.filter(e => e.event_date.startsWith(month) && e.event_date >= today && e.workflow_phase === 'invitation');
+  const monthEvents = events.filter(e => e.event_date.startsWith(month) && e.event_date >= today && e.workflow_phase === 'invitation');
+  const availableEvents = monthEvents.filter(e => !e.is_fully_staffed);
+  const fullCount = monthEvents.length - availableEvents.length;
   return <div className="w-full space-y-6">
     <div><h1 className="text-3xl font-bold">Maanduitvragen</h1><p className="mt-2 text-gray-600">Selecteer events en personen. Iedere schipper ontvangt één mail met de eigen uitnodigingen.</p><Link className="text-ocean-700 underline" to="/mijn-planning" target="_blank">Persoonlijke planningspagina openen</Link></div>
     {error && <p role="alert" className="rounded-lg bg-red-50 p-4 text-red-800">{error}</p>}
@@ -42,7 +44,8 @@ export function InvitationBatchesPage() {
       <section className="rounded-xl border bg-white p-5">
         <h2 className="text-lg font-semibold">1. Kies de maand en uitnodigingen</h2>
         <label className="my-4 block">Maand<input type="month" className="ml-3 rounded-lg border p-2" value={month} disabled={busy} onChange={e => { setMonth(e.target.value); setSelections([]); setPreview(null); }} /></label>
-        {!availableEvents.length && <p className="text-gray-500">Geen toekomstige open events in deze maand.</p>}
+        {fullCount > 0 && <p className="mb-4 text-sm text-gray-500">{fullCount} volledig bezette {fullCount === 1 ? 'event wordt' : 'events worden'} niet getoond.</p>}
+        {!availableEvents.length && <p className="text-gray-500">Geen toekomstige events met open plekken in deze maand.</p>}
         {availableEvents.length > 0 && <InvitationMatrix key={`${month}-${batches.length}`} events={availableEvents} eventTypes={eventTypes} skippers={skippers} batches={batches} selections={selections} onChange={setSelections} disabled={busy} />}
         <div className="sticky bottom-3 z-30 mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-white p-4 shadow-lg"><button className={button} disabled={busy || selections.length === 0} onClick={() => action(async () => {
           const batch = await batchesApi.prepare(month, selections); setPreview(batch); setSelections([]); await refresh();

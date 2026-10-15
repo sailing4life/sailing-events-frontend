@@ -65,6 +65,7 @@ export interface Invitation {
 
 export interface Event {
   id: number;
+  is_fully_staffed?: boolean;
   event_name: string;
   company_name: string;
   event_date: string;
