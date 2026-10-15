@@ -2,7 +2,7 @@ import { InvitationMatrix } from '../components/InvitationMatrix';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { eventsApi, skippersApi, eventTypesApi } from '../services/api';
-import { batchesApi, errorMessage } from '../services/planningApi';
+import { batchesApi, errorMessage, roles } from '../services/planningApi';
 import type { Batch, Selection } from '../services/planningApi';
 import type { Event, Skipper, EventTypeConfig } from '../types';
 
@@ -50,13 +50,14 @@ export function InvitationBatchesPage() {
         <div className="sticky bottom-3 z-30 mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-white p-4 shadow-lg"><button className={button} disabled={busy || selections.length === 0} onClick={() => action(async () => {
           const batch = await batchesApi.prepare(month, selections); setPreview(batch); setSelections([]); await refresh();
         })}>Uitvraag voorbereiden</button><span className="text-sm text-gray-600">{selections.length} uitnodigingen · {new Set(selections.map(s => s.skipper_id)).size} persoonlijke mails</span></div>
+        {selections.length > 0 && <div className="flex flex-wrap gap-2" aria-label="Geselecteerde uitnodigingen per rol">{Object.entries(roles).map(([key, label]) => { const count = selections.filter(item => item.role === key).length; return count ? <span key={key} className="rounded-lg border bg-slate-50 px-3 py-2 text-sm"><strong>{count}</strong> uitnodigingen als <strong>{label}</strong></span> : null; })}</div>}
         <p className="mt-2 text-sm text-gray-500">Voorbereiden bewaart de bundel. Er wordt pas gemaild na controle en verzending hieronder.</p>
       </section>
       {preview && <section className="rounded-xl border border-ocean-200 bg-white p-5">
         <h2 className="text-lg font-semibold">2. Controleer de mails · {preview.month}</h2><p className="my-2 text-sm text-gray-600">Iedere mail bevat onderstaande events en een persoonlijke knop naar Mijn planning.</p>
         <div className="max-h-[520px] space-y-2 overflow-y-auto">{preview.recipients.map(r => <details key={r.id} className="rounded-lg border p-4">
-          <summary className="flex cursor-pointer flex-wrap justify-between gap-2"><span className="font-semibold">{r.name} <span className="text-sm font-normal text-gray-500">? {r.events.length} events</span></span><span className="text-sm">{r.delivered_at ? 'Bezorgd' : states[r.state] || r.state}</span></summary><p className="text-sm text-gray-500">{r.email}</p>
-          <ul className="my-3 space-y-2">{r.events.map(e => <li key={e.id}>{dateNL(e.date)} · {e.time} · {e.name} <span className="text-gray-500">({e.role})</span></li>)}</ul>
+          <summary className="flex cursor-pointer flex-wrap justify-between gap-2"><span className="font-semibold">{r.name} <span className="text-sm font-normal text-gray-500"> / {r.events.length} events</span></span><span className="text-sm">{r.delivered_at ? 'Bezorgd' : states[r.state] || r.state}</span><span className="flex w-full flex-wrap gap-2">{[...new Set(r.events.map(e => e.role))].map(role => <span key={role} className="rounded bg-ocean-50 px-2 py-1 text-xs font-semibold text-ocean-800">{r.events.filter(e => e.role === role).length} als {role}</span>)}</span></summary><p className="mt-2 text-sm text-gray-500">{r.email}</p>
+          <ul className="my-3 space-y-2">{r.events.map(e => <li key={e.id}>{dateNL(e.date)} · {e.time} · {e.name} <span className="ml-2 inline-block rounded border border-ocean-200 bg-ocean-50 px-2 py-1 text-sm font-semibold text-ocean-800">Uitnodiging als {e.role}</span></li>)}</ul>
           {r.error && <p className="text-sm text-red-700">{r.error}</p>}
           {r.state === 'sending' && <p className="text-sm text-amber-700">Bij een onderbroken verzending: controleer Resend voordat je opnieuw uitnodigt.</p>}
         </details>)}</div>
