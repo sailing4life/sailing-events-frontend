@@ -26,15 +26,15 @@ npm run dev -- --host 127.0.0.1 --port 5174 --strictPort
 De lokale werkmap hergebruikt de bestaande `node_modules`. Voer op een nieuwe clone eerst `npm ci` uit.
 
 1. Open `http://localhost:5174`, log in met `admin` / `planning-demo` en kies **Maanduitvragen**.
-2. Selecteer een maand met demo-events, kies personen en rollen per event en klik **Uitvraag voorbereiden**.
-3. Controleer de persoonlijke overzichten. Klik **Verstuur de persoonlijke mails**. Eén bestand per schipper verschijnt in `preview-mails`.
+2. Selecteer een maand met demo-events. In de matrix staan personen als rijen en events als kolommen. Zoek op naam, kies de uitnodigingsrol en vink combinaties aan. Gebruik de knoppen per rij/kolom om meerdere uitnodigingen tegelijk toe te voegen. Bulkacties respecteren de zichtbare filters en behouden bestaande rollen; met **Ongedaan maken** herstel je de vorige selectie. Klik daarna **Uitvraag voorbereiden**.
+3. Controleer de inklapbare persoonlijke overzichten. Klik **Verstuur de persoonlijke mails**. Eén bestand per schipper verschijnt in `preview-mails`.
 4. Open een HTML-mail lokaal en volg de link naar **Mijn planning**. Klik op **Mijn planning openen** om de eenmalige link te gebruiken.
 5. Geef voor meerdere events Ja / Misschien / Nee door en sla de antwoorden op.
 6. Bevestig een beschikbare schipper in het bestaande eventscherm. Na vernieuwen staat de opdracht bij **Definitief ingepland**.
 7. Controleer ook de afmeldknop en de melding voor de planner. Een afmelding verwijdert de bevestigde indeling niet.
 8. Via `http://localhost:5174/mijn-planning` kun je een nieuwe inloglink aanvragen voor `anna@example.com` of `bram@example.com`. Ook die mail verschijnt lokaal.
 
-De demo onthoudt wijzigingen. Een voorbereide, nog niet verzonden bundel kan in het scherm worden verwijderd en opnieuw samengesteld.
+De demo bevat 30 fictieve schippers om de matrix op schaal te testen. De demo onthoudt wijzigingen. Een voorbereide, nog niet verzonden bundel kan in het scherm worden verwijderd en opnieuw samengesteld.
 
 ### Werking en grenzen van deze eerste versie
 
