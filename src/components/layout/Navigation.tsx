@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink, useLocation } from 'react-router-dom';
 
 interface DropdownItem {
@@ -20,22 +21,58 @@ function DropdownNav({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number; width: number; maxHeight: number } | null>(null);
   const location = useLocation();
   const isActive = activePaths.some((p) => location.pathname.startsWith(p));
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      if (ref.current && !ref.current.contains(e.target as Node)
+        && !menuRef.current?.contains(e.target as Node)) {
         setOpen(false);
       }
     }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
     document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    function updatePosition() {
+      if (!ref.current) return;
+      const bounds = ref.current.getBoundingClientRect();
+      const width = Math.min(208, window.innerWidth - 16);
+      const top = bounds.bottom + 4;
+      setMenuPosition({
+        top,
+        left: Math.max(8, Math.min(bounds.left, window.innerWidth - width - 8)),
+        width,
+        maxHeight: Math.max(0, window.innerHeight - top - 8),
+      });
+    }
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [open]);
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
+        type="button"
+        aria-label={label || 'Instellingen'}
+        aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
         className={`flex items-center space-x-1.5 px-3 py-4 text-sm font-medium border-b-2 transition-colors ${
           isActive
@@ -55,10 +92,11 @@ function DropdownNav({
         </svg>
       </button>
 
-      {open && (
+      {open && menuPosition && createPortal(
         <div
-          style={{ position: 'absolute', top: '100%', left: 0, zIndex: 50, minWidth: 170 }}
-          className="bg-white border border-gray-200 rounded-lg shadow-lg py-1"
+          ref={menuRef}
+          style={{ position: 'fixed', ...menuPosition, zIndex: 100 }}
+          className="bg-white border border-gray-200 rounded-lg shadow-lg py-1 overflow-y-auto"
         >
           {items.map((item) => (
             <NavLink
@@ -77,7 +115,8 @@ function DropdownNav({
               <span>{item.label}</span>
             </NavLink>
           ))}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
