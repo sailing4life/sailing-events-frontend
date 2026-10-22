@@ -8,6 +8,7 @@ import { ReplaceSkipperModal } from '../components/events/ReplaceSkipperModal';
 import { RateConfirmModal } from '../components/events/RateConfirmModal';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { toast } from 'sonner';
+import { getEventStatus } from '../utils/eventStatus';
 
 const getInvitationStatusBadge = (status: InvitationStatus, isFinalized = false) => {
   if (isFinalized && (status === 'available' || status === 'maybe' || status === 'pending')) {
@@ -568,35 +569,13 @@ export function EventDetailPage() {
 
   // Ensure invitations is an array (defensive check)
   const invitations = Array.isArray(event.invitations) ? event.invitations : [];
-  const statusInvitations = invitations.filter(inv => inv.role !== 'race_director' && inv.role !== 'coach');
-  const raceDirectorInvitations = invitations.filter(inv => inv.role === 'race_director');
   const coachInvitations = invitations.filter(inv => inv.role === 'coach');
-  const coachSkipperInvitations = coachInvitations.filter(inv => inv.skipper.is_skipper);
   const invitedSkipperIds = new Set(invitations.map(inv => inv.skipper.id));
 
-  // Calculate invitation statistics — coaches who are also skipper count toward boat coverage
-  const availableSkippers = [...statusInvitations, ...coachSkipperInvitations].filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
-  const confirmedSkippers = [...statusInvitations, ...coachSkipperInvitations].filter(inv => inv.status === 'confirmed').length;
-  const availableRaceDirectors = raceDirectorInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
-  const confirmedRaceDirectors = raceDirectorInvitations.filter(inv => inv.status === 'confirmed').length;
-  const availableCoaches = coachInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
-  const confirmedCoaches = coachInvitations.filter(inv => inv.status === 'confirmed').length;
-  const availableCount = availableSkippers + availableRaceDirectors + availableCoaches;
-  const requiredSkippers = event.event_boats.length;
-  const requiredRaceDirectors = event.required_race_directors || 0;
-  const requiredCoaches = event.required_coaches || 0;
-  const totalRequired = requiredSkippers + requiredRaceDirectors + requiredCoaches;
-  const confirmedWithoutBoats = requiredSkippers === 0
-    && event.workflow_phase === 'finalized'
-    && invitations.some(inv => inv.status === 'confirmed');
-  const allConfirmed = (requiredSkippers > 0 || confirmedWithoutBoats)
-    && confirmedSkippers >= requiredSkippers
-    && confirmedRaceDirectors >= requiredRaceDirectors
-    && confirmedCoaches >= requiredCoaches;
-  const isComplete = (requiredSkippers > 0 || confirmedWithoutBoats)
-    && availableSkippers >= requiredSkippers
-    && availableRaceDirectors >= requiredRaceDirectors
-    && availableCoaches >= requiredCoaches;
+  const eventStatus = getEventStatus(event);
+  const { availableCount, totalRequired, isComplete, allConfirmed } = eventStatus;
+  const { skippers: requiredSkippers, raceDirectors: requiredRaceDirectors, coaches: requiredCoaches } = eventStatus.required;
+  const { skippers: confirmedSkippers, raceDirectors: confirmedRaceDirectors, coaches: confirmedCoaches } = eventStatus.confirmed;
 
   // Helper functions for manual assignment
   const unassignedBoats = event.event_boats.filter(eb => !eb.skipper);
@@ -649,13 +628,9 @@ export function EventDetailPage() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{event.event_name}</h1>
             <p className="text-gray-600">{event.company_name}</p>
           </div>
-          {isComplete ? (
-            <span className="badge badge-complete text-lg">✓ Compleet</span>
-          ) : (
-            <span className="badge badge-available text-lg">
-              {availableCount}/{totalRequired} Beschikbaar
-            </span>
-          )}
+          <span className={`${eventStatus.className} text-lg`}>
+            {!isComplete && `${availableCount}/${totalRequired} `}{eventStatus.label}
+          </span>
         </div>
 
         <div className="flex flex-wrap gap-2 mb-4">

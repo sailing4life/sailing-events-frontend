@@ -4,43 +4,11 @@ import { eventsApi, eventTypesApi } from '../services/api';
 import { EventCard } from '../components/events/EventCard';
 import { EventCalendarView } from '../components/events/EventCalendarView';
 import { EventCardSkeleton } from '../components/common/Skeleton';
+import { getEventStatus } from '../utils/eventStatus';
 import type { Event, EventTypeConfig } from '../types';
 import { toast } from 'sonner';
 
 type ViewMode = 'cards' | 'list' | 'calendar';
-
-function getEventStatus(event: Event): { label: string; className: string } {
-  const invitations = Array.isArray(event.invitations) ? event.invitations : [];
-  const eventBoats = Array.isArray(event.event_boats) ? event.event_boats : [];
-  const useInvitations = invitations.length > 0;
-
-  const skipperInvitations = useInvitations ? invitations.filter(inv => inv.role !== 'race_director' && inv.role !== 'coach') : [];
-  const raceDirectorInvitations = useInvitations ? invitations.filter(inv => inv.role === 'race_director') : [];
-  const coachInvitations = useInvitations ? invitations.filter(inv => inv.role === 'coach') : [];
-  const requiredSkippers = eventBoats.length;
-  const requiredRaceDirectors = event.required_race_directors || 0;
-  const requiredCoaches = event.required_coaches || 0;
-  const availableSkippers = useInvitations
-    ? skipperInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length
-    : eventBoats.filter(eb => eb.response_status === 'yes').length;
-  const availableRaceDirectors = useInvitations
-    ? raceDirectorInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length
-    : 0;
-  const availableCoaches = useInvitations
-    ? coachInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length
-    : 0;
-  const isComplete = requiredSkippers > 0
-    && availableSkippers >= requiredSkippers
-    && availableRaceDirectors >= requiredRaceDirectors
-    && availableCoaches >= requiredCoaches;
-  const hasPending = useInvitations
-    ? invitations.some(inv => inv.status === 'pending')
-    : eventBoats.some(eb => eb.response_status === 'pending');
-
-  if (!hasPending && isComplete) return { label: 'Compleet', className: 'badge badge-complete' };
-  if (hasPending) return { label: 'Wachtend', className: 'badge badge-pending' };
-  return { label: 'Beschikbaar', className: 'badge badge-available' };
-}
 
 export function EventsPage() {
   const navigate = useNavigate();
@@ -78,47 +46,16 @@ export function EventsPage() {
 
     if (!matchesSearch) return false;
 
-    const invitations = Array.isArray(event.invitations) ? event.invitations : [];
-    const eventBoats = Array.isArray(event.event_boats) ? event.event_boats : [];
-    const useInvitations = invitations.length > 0;
-
-    const skipperInvitations = useInvitations
-      ? invitations.filter(inv => inv.role !== 'race_director' && inv.role !== 'coach')
-      : [];
-    const raceDirectorInvitations = useInvitations
-      ? invitations.filter(inv => inv.role === 'race_director')
-      : [];
-    const coachInvitations = useInvitations
-      ? invitations.filter(inv => inv.role === 'coach')
-      : [];
-    const requiredSkippers = eventBoats.length;
-    const requiredRaceDirectors = event.required_race_directors || 0;
-    const requiredCoaches = event.required_coaches || 0;
-    const availableSkippers = useInvitations
-      ? skipperInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length
-      : eventBoats.filter(eb => eb.response_status === 'yes').length;
-    const availableRaceDirectors = useInvitations
-      ? raceDirectorInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length
-      : 0;
-    const availableCoaches = useInvitations
-      ? coachInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length
-      : 0;
-    const isComplete = requiredSkippers > 0
-      && availableSkippers >= requiredSkippers
-      && availableRaceDirectors >= requiredRaceDirectors
-      && availableCoaches >= requiredCoaches;
-    const hasPending = useInvitations
-      ? invitations.some(inv => inv.status === 'pending')
-      : eventBoats.some(eb => eb.response_status === 'pending');
+    const status = getEventStatus(event);
 
     if (filterStatus === 'confirmed') {
-      return invitations.filter(inv => inv.status === 'confirmed').length > 0 && isComplete;
+      return status.allConfirmed;
     }
     if (filterStatus === 'complete') {
-      return !hasPending && isComplete;
+      return status.isComplete;
     }
     if (filterStatus === 'pending') {
-      return hasPending;
+      return status.status === 'pending';
     }
     return true;
   });

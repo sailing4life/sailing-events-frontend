@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Event } from '../../types';
+import { getEventStatus } from '../../utils/eventStatus';
 
 interface EventCalendarViewProps {
   events: Event[];
@@ -17,45 +18,10 @@ const getDurationLabel = (duration: string) => {
   return labels[duration] || duration;
 };
 
-function getEventStatus(event: Event): 'complete' | 'pending' {
-  const invitations = Array.isArray(event.invitations) ? event.invitations : [];
-  const eventBoats = Array.isArray(event.event_boats) ? event.event_boats : [];
-  const useInvitations = invitations.length > 0;
-
-  if (useInvitations) {
-    const skipperInvitations = invitations.filter(inv => inv.role !== 'race_director' && inv.role !== 'coach');
-    const raceDirectorInvitations = invitations.filter(inv => inv.role === 'race_director');
-    const coachInvitations = invitations.filter(inv => inv.role === 'coach');
-    const coachSkipperInvitations = coachInvitations.filter(inv => inv.skipper.is_skipper);
-    const skipperAvailable = [
-      ...skipperInvitations,
-      ...coachSkipperInvitations,
-    ].filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
-    const raceDirectorAvailable = raceDirectorInvitations.filter(
-      inv => inv.status === 'available' || inv.status === 'confirmed'
-    ).length;
-    const coachAvailable = coachInvitations.filter(
-      inv => inv.status === 'available' || inv.status === 'confirmed'
-    ).length;
-    const requiredSkippers = eventBoats.length;
-    const requiredRaceDirectors = event.required_race_directors || 0;
-    const requiredCoaches = event.required_coaches || 0;
-    const isComplete =
-      requiredSkippers > 0 &&
-      skipperAvailable >= requiredSkippers &&
-      raceDirectorAvailable >= requiredRaceDirectors &&
-      coachAvailable >= requiredCoaches;
-    return isComplete ? 'complete' : 'pending';
-  }
-
-  const availableCount = eventBoats.filter(eb => eb.response_status === 'yes').length;
-  const totalRequired = eventBoats.length;
-  return totalRequired > 0 && availableCount >= totalRequired ? 'complete' : 'pending';
-}
-
 const statusColors: Record<string, { bg: string; border: string; text: string }> = {
   complete: { bg: 'bg-green-50', border: 'border-green-300', text: 'text-green-800' },
-  pending: { bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-800' },
+  pending: { bg: 'bg-purple-50', border: 'border-purple-300', text: 'text-purple-800' },
+  available: { bg: 'bg-yellow-50', border: 'border-yellow-300', text: 'text-yellow-800' },
 };
 
 export function EventCalendarView({ events }: EventCalendarViewProps) {
@@ -182,13 +148,13 @@ export function EventCalendarView({ events }: EventCalendarViewProps) {
                     <div className="space-y-1">
                       {dayEvents.map(event => {
                         const status = getEventStatus(event);
-                        const colors = statusColors[status];
+                        const colors = statusColors[status.status];
                         return (
                           <Link
                             key={event.id}
                             to={`/events/${event.id}`}
                             className={`block px-1.5 py-0.5 rounded text-xs truncate border ${colors.bg} ${colors.border} ${colors.text} hover:opacity-80 transition-opacity`}
-                            title={`${event.event_name} - ${event.company_name} (${getDurationLabel(event.duration)})`}
+                            title={`${event.event_name} - ${event.company_name} (${getDurationLabel(event.duration)}) - ${status.label}`}
                           >
                             {event.event_name}
                           </Link>
@@ -210,7 +176,11 @@ export function EventCalendarView({ events }: EventCalendarViewProps) {
           Compleet
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded border border-red-300 bg-red-50"></span>
+          <span className="w-3 h-3 rounded border border-yellow-300 bg-yellow-50"></span>
+          Beschikbaar
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded border border-purple-300 bg-purple-50"></span>
           Wachtend
         </div>
       </div>

@@ -1,5 +1,6 @@
 import type { Event, ResponseStatus, InvitationStatus } from '../../types';
 import { Link } from 'react-router-dom';
+import { getEventStatus } from '../../utils/eventStatus';
 
 interface EventCardProps {
   event: Event;
@@ -73,38 +74,7 @@ export function EventCard({ event, eventTypeLabels }: EventCardProps) {
   // Use new invitation workflow if invitations exist, otherwise fall back to old workflow
   const useInvitations = invitations.length > 0;
 
-  let availableCount = 0;
-  let totalRequired = 0;
-  let isComplete = false;
-
-  if (useInvitations) {
-    // New workflow: count available skippers (excluding race directors and coaches)
-    // Coaches who are also skippers (is_skipper=true) count toward boat coverage
-    const skipperInvitations = invitations.filter(inv => inv.role !== 'race_director' && inv.role !== 'coach');
-    const raceDirectorInvitations = invitations.filter(inv => inv.role === 'race_director');
-    const coachInvitations = invitations.filter(inv => inv.role === 'coach');
-    const coachSkipperInvitations = coachInvitations.filter(inv => inv.skipper.is_skipper);
-    const skipperAvailable = [
-      ...skipperInvitations,
-      ...coachSkipperInvitations,
-    ].filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
-    const raceDirectorAvailable = raceDirectorInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
-    const coachAvailable = coachInvitations.filter(inv => inv.status === 'available' || inv.status === 'confirmed').length;
-    const requiredSkippers = event.event_boats.length;
-    const requiredRaceDirectors = event.required_race_directors || 0;
-    const requiredCoaches = event.required_coaches || 0;
-    availableCount = skipperAvailable + raceDirectorAvailable + coachAvailable;
-    totalRequired = requiredSkippers + requiredRaceDirectors + requiredCoaches;
-    isComplete = requiredSkippers > 0
-      && skipperAvailable >= requiredSkippers
-      && raceDirectorAvailable >= requiredRaceDirectors
-      && coachAvailable >= requiredCoaches;
-  } else {
-    // Old workflow: use event_boats
-    availableCount = eventBoats.filter(eb => eb.response_status === 'yes').length;
-    totalRequired = eventBoats.length;
-    isComplete = totalRequired > 0 && availableCount >= totalRequired;
-  }
+  const status = getEventStatus(event);
 
   const eventDate = new Date(event.event_date);
   const shortDate = eventDate.toLocaleDateString('nl-NL', {
@@ -127,11 +97,9 @@ export function EventCard({ event, eventTypeLabels }: EventCardProps) {
           <p className="text-sm text-gray-600">{event.company_name}</p>
         </div>
         <div className="flex flex-col items-end gap-2">
-        {isComplete ? (
-          <span className="badge badge-complete">✓ Compleet</span>
-        ) : (
-          <span className="badge badge-available">{availableCount}/{totalRequired} Beschikbaar</span>
-        )}
+          <span className={status.className}>
+            {!status.isComplete && `${status.availableCount}/${status.totalRequired} `}{status.label}
+          </span>
           <span className="badge badge-neutral">{shortDate}</span>
         </div>
       </div>
