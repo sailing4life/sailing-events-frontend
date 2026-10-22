@@ -288,7 +288,7 @@ export function CreateEventPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Datum</label>
                 <input
@@ -386,7 +386,7 @@ export function CreateEventPage() {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Starttijd (optioneel)</label>
                 <input
@@ -875,7 +875,7 @@ export function CreateEventPage() {
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between">
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
         <button
           onClick={() => step === 1 ? navigate('/events') : handleBack()}
           className="btn-secondary"

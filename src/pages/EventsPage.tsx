@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { eventsApi, eventTypesApi } from '../services/api';
 import { EventCard } from '../components/events/EventCard';
 import { EventCalendarView } from '../components/events/EventCalendarView';
@@ -105,8 +105,8 @@ export function EventsPage() {
       </div>
 
       {/* View Toggle and Filters */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        <div className="flex-1">
+      <div className="mb-6 flex flex-col xl:flex-row gap-4">
+        <div className="min-w-0 flex-1">
           <input
             type="text"
             placeholder="Zoek op event naam of bedrijf..."
@@ -115,13 +115,15 @@ export function EventsPage() {
             className="input-field"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 [&_button]:min-h-11">
           {/* View toggle */}
-          <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+          <div className="flex min-h-11 shrink-0 rounded-lg border border-gray-300 overflow-hidden">
             <button
               onClick={() => setViewMode('cards')}
               className={`px-3 py-2 transition-colors ${viewMode === 'cards' ? 'bg-cyan-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
               title="Kaart weergave"
+              aria-label="Kaartweergave"
+              aria-pressed={viewMode === 'cards'}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -131,6 +133,8 @@ export function EventsPage() {
               onClick={() => setViewMode('list')}
               className={`px-3 py-2 transition-colors ${viewMode === 'list' ? 'bg-cyan-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
               title="Lijst weergave"
+              aria-label="Lijstweergave"
+              aria-pressed={viewMode === 'list'}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -140,6 +144,8 @@ export function EventsPage() {
               onClick={() => setViewMode('calendar')}
               className={`px-3 py-2 transition-colors ${viewMode === 'calendar' ? 'bg-cyan-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
               title="Kalender weergave"
+              aria-label="Kalenderweergave"
+              aria-pressed={viewMode === 'calendar'}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -218,7 +224,22 @@ export function EventsPage() {
               {rows.length === 0 ? (
                 <div className="text-sm text-gray-500">Geen {title.toLowerCase()}</div>
               ) : (
-                <div className="overflow-x-auto rounded-lg border border-gray-200">
+                <div className="rounded-lg border border-gray-200">
+                  <div className="divide-y divide-gray-100 md:hidden">
+                    {rows.map(event => {
+                      const status = getEventStatus(event);
+                      return <Link key={event.id} to={`/events/${event.id}`} className="block space-y-2 bg-white p-4 first:rounded-t-lg last:rounded-b-lg active:bg-gray-50">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="text-sm text-gray-600">{new Date(`${event.event_date}T12:00:00`).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                          <span className={status.className}>{status.label}</span>
+                        </div>
+                        <p className="break-words font-semibold text-gray-900">{event.event_name}</p>
+                        <p className="break-words text-sm text-gray-600">{event.company_name}</p>
+                        <p className="text-sm text-gray-500">{eventTypeLabels[event.event_type] || event.event_type} · {event.event_boats?.length || 0} boten</p>
+                      </Link>;
+                    })}
+                  </div>
+                  <div className="hidden overflow-x-auto md:block">
                   <table className="min-w-full divide-y divide-gray-200 text-sm">
                     <thead className="bg-gray-50">
                       <tr>
@@ -254,6 +275,7 @@ export function EventsPage() {
                       })}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               )}
             </div>

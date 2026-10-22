@@ -156,13 +156,13 @@ export function SkippersPage() {
 
   return (
     <div>
-      <div className="mb-8 flex justify-between items-start">
+      <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-start">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Schippers</h1>
           <p className="text-gray-600">Beheer je freelance schippers</p>
         </div>
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={() => setShowCreateModal(true)}
               className="btn-primary"
@@ -184,8 +184,8 @@ export function SkippersPage() {
       </div>
 
       {/* Search and Filter */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
+      <div className="mb-6 flex flex-col xl:flex-row gap-3">
+        <div className="relative min-w-0 flex-1">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
@@ -197,9 +197,9 @@ export function SkippersPage() {
             className="input pl-10 w-full"
           />
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap [&_button]:min-h-11">
           {/* View toggle */}
-          <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+          <div className="flex min-h-11 rounded-lg border border-gray-300 overflow-hidden">
             <button
               onClick={() => setViewMode('cards')}
               className={`px-3 py-2 transition-colors ${viewMode === 'cards' ? 'bg-cyan-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
@@ -261,7 +261,25 @@ export function SkippersPage() {
 
         if (viewMode === 'list') {
           return (
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
+            <div className="rounded-lg border border-gray-200">
+              <div className="divide-y divide-gray-100 md:hidden">
+                {filtered.map(skipper => <div key={skipper.id} className="space-y-2 bg-white p-4 first:rounded-t-lg last:rounded-b-lg">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <button onClick={() => handleOpenDetails(skipper)} className="min-h-11 break-words text-left font-semibold text-cyan-700">{skipper.first_name} {skipper.last_name}</button>
+                    <span className={`badge ${skipper.is_active ? 'badge-yes' : 'badge-neutral'}`}>{skipper.is_active ? 'Actief' : 'Inactief'}</span>
+                  </div>
+                  <a href={`mailto:${skipper.email}`} className="block break-all py-1 text-sm text-gray-700">{skipper.email}</a>
+                  {skipper.phone && <a href={`tel:${skipper.phone}`} className="block py-1 text-sm text-gray-700">{skipper.phone}</a>}
+                  <p className="text-sm text-gray-500">{[skipper.is_skipper && 'Schipper', skipper.is_coach && 'Coach', skipper.is_race_director && 'Wedstrijdleider'].filter(Boolean).join(' · ')} · €{skipper.full_day_rate} per dag</p>
+                  {skipper.email_bounced && <p className="text-sm text-red-600">E-mail niet bezorgd (bounced)</p>}
+                  {skipper.email_complained && <p className="text-sm text-orange-600">E-mail als spam gemeld</p>}
+                  <div className="flex flex-wrap gap-2">
+                    <button onClick={() => handleOpenDetails(skipper)} className="btn-secondary">Details</button>
+                    <button onClick={() => handleOpenEditModal(skipper)} className="btn-secondary">Bewerken</button>
+                  </div>
+                </div>)}
+              </div>
+              <div className="hidden overflow-x-auto md:block">
               <table className="min-w-full divide-y divide-gray-200 text-sm">
                 <thead className="bg-gray-50">
                   <tr>
@@ -307,6 +325,7 @@ export function SkippersPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           );
         }
@@ -315,8 +334,8 @@ export function SkippersPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((skipper) => (
           <div key={skipper.id} className="card">
-            <div className="flex justify-between items-start mb-4">
-              <div>
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
+              <div className="min-w-0 break-words">
                 <h3 className="text-lg font-semibold text-gray-900">
                   {skipper.first_name} {skipper.last_name}
                 </h3>
@@ -408,7 +427,7 @@ export function SkippersPage() {
               </div>
 
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Voornaam *
@@ -435,7 +454,7 @@ export function SkippersPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Email *
@@ -462,7 +481,7 @@ export function SkippersPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Halve dag tarief (€) *
@@ -609,7 +628,7 @@ export function SkippersPage() {
 
               <div className="space-y-4">
                 {/* Name Fields */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Voornaam *
@@ -637,7 +656,7 @@ export function SkippersPage() {
                 </div>
 
                 {/* Contact Fields */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Email *
@@ -665,7 +684,7 @@ export function SkippersPage() {
                 </div>
 
                 {/* Rate Fields */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Halve dag tarief (€) *

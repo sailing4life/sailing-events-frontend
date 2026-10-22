@@ -204,7 +204,7 @@ export function CreateHistoricalEventPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
         <div>
           <Link to="/events/new" className="text-cyan-600 hover:text-cyan-700 text-sm inline-block mb-2">
             Normale event wizard
@@ -520,7 +520,7 @@ export function CreateHistoricalEventPage() {
         </section>
       </div>
 
-      <div className="flex justify-between">
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
         <Link to="/" className="btn-secondary">
           Annuleren
         </Link>

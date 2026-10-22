@@ -6,27 +6,33 @@
   body {
     @apply bg-gray-50 text-gray-900;
   }
+
+  @media (max-width: 639px) {
+    input:not([type='checkbox']):not([type='radio']):not([type='file']), select, textarea {
+      font-size: 16px;
+    }
+  }
 }
 
 @layer components {
   .btn-primary {
-    @apply px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors duration-200 font-medium;
+    @apply inline-flex min-h-11 items-center justify-center px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors duration-200 font-medium;
   }
 
   .btn-secondary {
-    @apply px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium;
+    @apply inline-flex min-h-11 items-center justify-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium;
   }
 
   .card {
-    @apply bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200;
+    @apply min-w-0 break-words bg-white rounded-lg shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow duration-200;
   }
 
   .input-field {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500;
+    @apply min-h-11 min-w-0 w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500;
   }
 
   .input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500;
+    @apply min-h-11 min-w-0 w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500;
   }
 
   .badge {

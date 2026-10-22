@@ -48,6 +48,10 @@ function DropdownNav({
     if (!open) return;
     function updatePosition() {
       if (!ref.current) return;
+      if (ref.current.getClientRects().length === 0) {
+        setOpen(false);
+        return;
+      }
       const bounds = ref.current.getBoundingClientRect();
       const width = Math.min(208, window.innerWidth - 16);
       const top = bounds.bottom + 4;
@@ -123,10 +127,59 @@ function DropdownNav({
 }
 
 export function Navigation() {
+  const location = useLocation();
+  const [openPath, setOpenPath] = useState<string | null>(null);
+  const mobileOpen = openPath === location.pathname;
+  const navRef = useRef<HTMLElement>(null);
+  const mobileItems = [
+    { path: '/', label: 'Dashboard', icon: '🏠' },
+    { path: '/events', label: 'Events', icon: '📅' },
+    { path: '/maanduitvragen', label: 'Maanduitvragen', icon: '✉️' },
+    { path: '/skippers', label: 'Schippers', icon: '⚓' },
+    { path: '/boats', label: 'Boten', icon: '⛵' },
+    { path: '/maintenance', label: 'Onderhoud', icon: '🔧' },
+    { path: '/statistics', label: 'Statistieken', icon: '📊' },
+    { path: '/notifications', label: 'Notificaties', icon: '🔔' },
+    { path: '/documents', label: 'Documenten', icon: '📄' },
+    { path: '/settings', label: 'Instellingen', icon: '⚙️' },
+    { path: '/info', label: 'Handleiding', icon: 'ℹ️' },
+  ];
+  const currentItem = mobileItems.find(item => item.path !== '/' && location.pathname.startsWith(item.path)) || mobileItems[0];
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const closeOnOutside = (event: PointerEvent) => {
+      if (!navRef.current?.contains(event.target as Node)) setOpenPath(null);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpenPath(null);
+    };
+    document.addEventListener('pointerdown', closeOnOutside);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutside);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [mobileOpen]);
+
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200">
+    <nav ref={navRef} aria-label="Hoofdnavigatie" className="relative bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex space-x-1 overflow-x-auto">
+        <div className="flex min-h-12 items-center justify-between gap-3 lg:hidden">
+          <span className="text-sm font-semibold text-ocean-700">{currentItem.icon} {currentItem.label}</span>
+          <button type="button" aria-expanded={mobileOpen} aria-controls="mobile-navigation" onClick={() => setOpenPath(mobileOpen ? null : location.pathname)} className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-medium text-gray-700 hover:bg-gray-100">
+            <svg aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth={2} d={mobileOpen ? 'M6 6l12 12M6 18L18 6' : 'M4 6h16M4 12h16M4 18h16'} /></svg>
+            {mobileOpen ? 'Sluiten' : 'Menu'}
+          </button>
+        </div>
+        {mobileOpen && <div id="mobile-navigation" className="absolute inset-x-0 top-full z-40 max-h-[calc(100dvh-8rem)] overflow-y-auto overscroll-contain border-b border-gray-200 bg-white px-4 py-3 shadow-lg lg:hidden">
+          <div className="grid grid-cols-2 gap-2">
+            {mobileItems.map(item => <NavLink key={item.path} to={item.path} end={item.path === '/'} onClick={() => setOpenPath(null)} className={({ isActive }) => `flex min-h-12 min-w-0 items-center gap-2 rounded-lg px-3 py-3 text-sm font-medium ${isActive ? 'bg-ocean-50 text-ocean-700' : 'text-gray-700 hover:bg-gray-50'}`}>
+              <span aria-hidden="true">{item.icon}</span><span className="break-words">{item.label}</span>
+            </NavLink>)}
+          </div>
+        </div>}
+        <div className="hidden lg:flex space-x-1 overflow-x-auto">
           <NavLink to="/maanduitvragen" className={({ isActive }) => `whitespace-nowrap px-3 py-4 text-sm font-medium border-b-2 ${isActive ? 'border-ocean-600 text-ocean-600' : 'border-transparent text-gray-500'}`}>Maanduitvragen</NavLink>
 
           <NavLink

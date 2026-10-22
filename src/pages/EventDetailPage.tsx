@@ -623,8 +623,8 @@ export function EventDetailPage() {
           ← Terug naar overzicht
         </Link>
 
-        <div className="flex justify-between items-start mb-4">
-          <div>
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
+          <div className="min-w-0 break-words">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{event.event_name}</h1>
             <p className="text-gray-600">{event.company_name}</p>
           </div>
@@ -739,14 +739,14 @@ export function EventDetailPage() {
 
           {/* Invitations (NEW WORKFLOW) */}
           <div className="card">
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex flex-col xl:flex-row justify-between items-start gap-3 mb-4">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Uitnodigingen</h2>
                 <p className="text-sm text-gray-600 mt-1">
                   Overzicht per rol, inclusief beschikbaarheid en bevestiging
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
                 <button
                   onClick={async () => { await ensureModalData(); setDirectConfirmModalOpen(true); }}
                   disabled={actionLoading}
@@ -843,7 +843,7 @@ export function EventDetailPage() {
 
                     return (
                       <>
-                        <div className="flex justify-between items-center mb-4">
+                        <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
                           <div>
                             <h3 className="font-semibold text-gray-900">{group.title}</h3>
                             <p className="text-xs text-gray-500">
@@ -882,8 +882,8 @@ export function EventDetailPage() {
                                     isCoach ? 'border-green-200 bg-green-50' : 'border-gray-200'
                                   }`}
                                 >
-                                  <div className="flex justify-between items-start mb-2">
-                                    <div className="flex-1">
+                                  <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-2">
+                                    <div className="min-w-0 break-words flex-1">
                                       <p className="font-semibold text-gray-900">
                                         {invitation.skipper.first_name} {invitation.skipper.last_name}
                                       </p>

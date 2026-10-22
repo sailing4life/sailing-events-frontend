@@ -114,10 +114,10 @@ export function DashboardPage() {
       </h1>
 
       {/* 3-column layout: cards | action sections | upcoming events */}
-      <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr 1.6fr', gap: 16, alignItems: 'start' }}>
+      <div className="grid min-w-0 grid-cols-1 items-start gap-4 xl:grid-cols-[180px_minmax(0,1fr)_minmax(0,1.6fr)]">
 
         {/* Column 1: summary cards stacked */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 xl:grid-cols-1">
           <SummaryCard icon="📅" value={thisMonthEvents.length} label="Events deze maand" color="#0891b2" bg="#f0f9ff" />
           <SummaryCard icon="✅" value={needsConfirmationCount} label="Schippers te bevestigen" color="#16a34a" bg="#f0fdf4" highlight={needsConfirmationCount > 0} />
           <SummaryCard icon="⏳" value={awaitingResponseCount} label="Openstaande uitvragen" color="#d97706" bg="#fffbeb" />

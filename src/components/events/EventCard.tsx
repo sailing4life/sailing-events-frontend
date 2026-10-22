@@ -91,12 +91,12 @@ export function EventCard({ event, eventTypeLabels }: EventCardProps) {
 
   return (
     <Link to={`/events/${event.id}`} className="card block hover:scale-[1.02] transition-transform">
-      <div className="flex justify-between items-start mb-4">
-        <div>
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
+        <div className="min-w-0">
           <h3 className="text-lg font-semibold text-gray-900 mb-1">{event.event_name}</h3>
           <p className="text-sm text-gray-600">{event.company_name}</p>
         </div>
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex flex-wrap sm:flex-col sm:items-end shrink-0 gap-2">
           <span className={status.className}>
             {!status.isComplete && `${status.availableCount}/${status.totalRequired} `}{status.label}
           </span>

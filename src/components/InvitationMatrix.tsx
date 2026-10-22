@@ -83,7 +83,39 @@ export function InvitationMatrix({ events, eventTypes, skippers, batches, select
       {undo && <button disabled={disabled} onClick={() => { onChange(undo); setUndo(null); }} className="px-2 py-2 font-medium text-ocean-800 underline">Ongedaan maken</button>}
     </div>
     <p className="text-sm text-slate-500">Vink een persoon aan bij een event. De rol staat bij elke uitnodiging en kun je daar direct wijzigen. Per persoon kies je een rol per event.</p>
-    <div className="max-h-[560px] overflow-auto rounded-xl border border-slate-200">
+    <div className="space-y-3 lg:hidden">
+      {visibleEvents.map(e => <details key={e.id} open={visibleEvents.length === 1 ? true : undefined} className="rounded-xl border border-slate-200 bg-white">
+        <summary className="cursor-pointer space-y-1 p-4">
+          <span className="font-semibold text-slate-900">{e.event_name}</span>
+          <span className="block text-sm text-slate-500">{new Date(`${e.event_date}T12:00:00`).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', weekday: 'short' })} · {typeLabel(e.event_type)}</span>
+          <span className="block text-sm text-slate-500">{e.start_time && e.end_time ? `${e.start_time.slice(0, 5)} – ${e.end_time.slice(0, 5)}` : durations[e.duration]}</span>
+          <span className="block text-sm font-medium text-ocean-700">{selections.filter(v => v.event_id === e.id).length} geselecteerd · Tik om personen te kiezen</span>
+        </summary>
+        <div className="border-t border-slate-100 p-3">
+          <button type="button" disabled={disabled || !people.some(s => !reserved(e, s) && !chosen.has(`${e.id}:${s.id}`))} onClick={() => addMany([e], people)} className="mb-3 min-h-11 w-full rounded-lg bg-ocean-50 px-3 py-2 text-sm font-semibold text-ocean-800 disabled:opacity-40">Iedereen als {roles[role]} toevoegen</button>
+          <div className="divide-y divide-slate-100">
+            {people.map(s => {
+              const item = chosen.get(`${e.id}:${s.id}`);
+              const locked = reserved(e, s);
+              return <div key={s.id} className="space-y-2 py-3">
+                {locked ? <div><p className="font-medium">{s.first_name} {s.last_name}</p><p className="text-sm text-slate-500">Al uitgenodigd / voorbereid</p></div> : <>
+                  <label className="flex min-h-11 cursor-pointer items-center gap-3">
+                    <input type="checkbox" disabled={disabled} checked={Boolean(item)} onChange={() => toggle(e, s)} aria-label={`${s.first_name} ${s.last_name} als ${roles[item?.role || role]} uitnodigen voor ${e.event_name}`} className="h-5 w-5 shrink-0 accent-cyan-700" />
+                    <span className="min-w-0"><span className="block break-words font-medium">{s.first_name} {s.last_name}</span><span className="block text-sm text-slate-500">{item ? `Uitnodiging als ${roles[item.role]}` : `Als ${roles[role]}`}</span></span>
+                  </label>
+                  {item && <select disabled={disabled} aria-label={`Rol van ${s.first_name} ${s.last_name} bij ${e.event_name}`} value={item.role} onChange={event => changeRole(e.id, s, event.target.value as InvitationRole)} className={`min-h-11 w-full rounded-lg border px-3 py-2 font-semibold ${roleStyles[item.role]}`}>
+                    {roleKeys.filter(key => supported(s, key)).map(key => <option key={key} value={key}>{roles[key]}</option>)}
+                  </select>}
+                </>}
+              </div>;
+            })}
+            {!people.length && <p className="p-3 text-sm text-slate-500">Geen personen met deze filters. Pas je zoekopdracht of rol aan.</p>}
+          </div>
+        </div>
+      </details>)}
+      {!visibleEvents.length && <p className="rounded-lg bg-slate-50 p-4 text-sm text-slate-500">Geen events met deze filters.</p>}
+    </div>
+    <div className="hidden max-h-[560px] overflow-auto rounded-xl border border-slate-200 lg:block">
       <table className="w-full border-separate border-spacing-0 text-sm">
         <thead className="sticky top-0 z-20"><tr>
           <th scope="col" className="sticky left-0 z-30 min-w-[210px] border-b border-r border-slate-200 bg-slate-100 p-4 text-left">Persoon <span className="block text-xs font-normal text-slate-500">Nieuwe uitnodigingen als {roles[role]}</span></th>

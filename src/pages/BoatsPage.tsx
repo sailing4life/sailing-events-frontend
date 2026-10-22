@@ -93,7 +93,7 @@ export function BoatsPage() {
 
   return (
     <div>
-      <div className="mb-8 flex justify-between items-start">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Boten</h1>
           <p className="text-gray-600">Beheer je vloot</p>
