@@ -586,11 +586,14 @@ export function EventDetailPage() {
   const requiredRaceDirectors = event.required_race_directors || 0;
   const requiredCoaches = event.required_coaches || 0;
   const totalRequired = requiredSkippers + requiredRaceDirectors + requiredCoaches;
-  const allConfirmed = requiredSkippers > 0
+  const confirmedWithoutBoats = requiredSkippers === 0
+    && event.workflow_phase === 'finalized'
+    && invitations.some(inv => inv.status === 'confirmed');
+  const allConfirmed = (requiredSkippers > 0 || confirmedWithoutBoats)
     && confirmedSkippers >= requiredSkippers
     && confirmedRaceDirectors >= requiredRaceDirectors
     && confirmedCoaches >= requiredCoaches;
-  const isComplete = requiredSkippers > 0
+  const isComplete = (requiredSkippers > 0 || confirmedWithoutBoats)
     && availableSkippers >= requiredSkippers
     && availableRaceDirectors >= requiredRaceDirectors
     && availableCoaches >= requiredCoaches;

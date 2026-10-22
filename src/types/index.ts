@@ -106,6 +106,7 @@ export interface HistoricalEventCreateInput {
   required_race_directors: number;
   required_coaches: number;
   boat_assignments: HistoricalBoatAssignmentInput[];
+  skipper_ids?: number[];
   head_skipper_id?: number;
   race_director_ids?: number[];
   coach_ids?: number[];

@@ -16,6 +16,7 @@ interface HistoricalEventFormData {
   required_coaches: number;
   selected_boat_ids: number[];
   boat_assignments: Record<number, number | ''>;
+  skipper_ids: number[];
   head_skipper_id: number | '';
   race_director_ids: number[];
   coach_ids: number[];
@@ -47,6 +48,7 @@ export function CreateHistoricalEventPage() {
     required_coaches: 0,
     selected_boat_ids: [],
     boat_assignments: {},
+    skipper_ids: [],
     head_skipper_id: '',
     race_director_ids: [],
     coach_ids: [],
@@ -93,6 +95,7 @@ export function CreateHistoricalEventPage() {
   }
   formData.race_director_ids.forEach((skipperId) => usedSkipperIds.add(skipperId));
   formData.coach_ids.forEach((skipperId) => usedSkipperIds.add(skipperId));
+  formData.skipper_ids.forEach((skipperId) => usedSkipperIds.add(skipperId));
 
   const toggleBoat = (boatId: number) => {
     setFormData((prev) => {
@@ -124,7 +127,7 @@ export function CreateHistoricalEventPage() {
     }));
   };
 
-  const toggleRoleSelection = (field: 'race_director_ids' | 'coach_ids', skipperId: number) => {
+  const toggleRoleSelection = (field: 'skipper_ids' | 'race_director_ids' | 'coach_ids', skipperId: number) => {
     setFormData((prev) => ({
       ...prev,
       [field]: prev[field].includes(skipperId)
@@ -172,6 +175,7 @@ export function CreateHistoricalEventPage() {
         skipper_id: skipperId === '' ? undefined : skipperId,
       })),
       head_skipper_id: formData.head_skipper_id === '' ? undefined : formData.head_skipper_id,
+      skipper_ids: formData.skipper_ids,
       race_director_ids: formData.race_director_ids,
       coach_ids: formData.coach_ids,
     };
@@ -207,7 +211,7 @@ export function CreateHistoricalEventPage() {
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Historisch Event Invoeren</h1>
           <p className="text-gray-600">
-            Sla een oud event direct op met aanwezigen en boottoewijzingen, zonder uitnodigingen of mails.
+            Sla een oud event direct op met aanwezigen en eventueel boten, zonder uitnodigingen of mails.
           </p>
         </div>
         <Link to="/events/new" className="btn-secondary whitespace-nowrap">
@@ -283,8 +287,8 @@ export function CreateHistoricalEventPage() {
                     ...prev,
                     event_type: nextType,
                     required_race_directors: nextType === 'training' ? 0 : prev.required_race_directors,
-                    required_coaches: ['academie', 'proces'].includes(nextType) ? prev.required_coaches : 0,
-                    coach_ids: ['academie', 'proces'].includes(nextType) ? prev.coach_ids : [],
+                    required_coaches: ['training', 'academie', 'proces'].includes(nextType) ? prev.required_coaches : 0,
+                    coach_ids: ['training', 'academie', 'proces'].includes(nextType) ? prev.coach_ids : [],
                   }));
                 }}
                 className="input-field"
@@ -309,7 +313,7 @@ export function CreateHistoricalEventPage() {
                 className="input-field"
               />
             </div>
-            {['academie', 'proces'].includes(formData.event_type) && (
+            {['training', 'academie', 'proces'].includes(formData.event_type) && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Coaches nodig</label>
                 <input
@@ -352,7 +356,7 @@ export function CreateHistoricalEventPage() {
         <section className="space-y-4">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Boten en schippers</h2>
-            <p className="text-sm text-gray-600 mt-1">Selecteer de gebruikte boten en wijs optioneel een schipper toe per boot.</p>
+            <p className="text-sm text-gray-600 mt-1">Selecteer alleen de gebruikte boten. Zonder onze boten? Laat deze leeg en selecteer hieronder de aanwezigen. Dit telt als 0 bootdagen.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -410,8 +414,35 @@ export function CreateHistoricalEventPage() {
 
         <section className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Overige aanwezigen</h2>
-            <p className="text-sm text-gray-600 mt-1">Optioneel: hoofdschipper, wedstrijdleiding en coaches die aanwezig waren.</p>
+            <h2 className="text-xl font-semibold text-gray-900">Aanwezigen zonder boottoewijzing</h2>
+            <p className="text-sm text-gray-600 mt-1">Selecteer wie aanwezig was, ook bij een training zonder onze boten. Deze personen tellen mee in de statistieken.</p>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">Schippers zonder boot</label>
+              <span className="text-xs text-gray-500">{formData.skipper_ids.length} geselecteerd</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {getAvailableRoleSkippers((skipper) => skipper.is_skipper, formData.skipper_ids).map((skipper) => (
+                <button
+                  key={skipper.id}
+                  type="button"
+                  aria-pressed={formData.skipper_ids.includes(skipper.id)}
+                  onClick={() => toggleRoleSelection('skipper_ids', skipper.id)}
+                  className={`text-left p-3 rounded-lg border transition-colors ${
+                    formData.skipper_ids.includes(skipper.id)
+                      ? 'border-cyan-600 bg-cyan-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <p className="font-medium text-gray-900">{skipper.first_name} {skipper.last_name}</p>
+                  <p className="text-sm text-gray-600">
+                    {skipper.email}{!skipper.is_active ? ' (inactief)' : ''}
+                  </p>
+                </button>
+              ))}
+            </div>
           </div>
 
           <div>
@@ -459,7 +490,7 @@ export function CreateHistoricalEventPage() {
             </div>
           </div>
 
-          {['academie', 'proces'].includes(formData.event_type) && (
+          {['training', 'academie', 'proces'].includes(formData.event_type) && (
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-700">Coaches</label>
@@ -502,7 +533,7 @@ export function CreateHistoricalEventPage() {
             !formData.company_name ||
             !formData.event_date ||
             !formData.event_type ||
-            selectedAssignments.length === 0
+            (selectedAssignments.length === 0 && usedSkipperIds.size === 0)
           }
           className={`btn-primary ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
