@@ -112,39 +112,9 @@ export function StatisticsPage() {
         </div>
       </div>
 
-      {/* Boat Usage */}
-      <div className="card mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Boot Gebruik</h2>
-        {statistics.boat_usage.length > 0 ? (
-          <div className="space-y-4">
-            {statistics.boat_usage.map((boat) => (
-              <div key={boat.id}>
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <span className="font-medium text-gray-900">⛵ {boat.name}</span>
-                    <span className="text-sm text-gray-600 ml-2">({boat.boat_type})</span>
-                  </div>
-                  <span className="text-sm font-semibold text-gray-900">
-                    {formatCount(boat.times_used)} keer
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div
-                    className="bg-cyan-600 h-3 rounded-full transition-all duration-300"
-                    style={{ width: `${(boat.times_used / maxBoatUsage) * 100}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500 text-center py-8">Nog geen boten gebruikt dit jaar</p>
-        )}
-      </div>
-
       {/* Boat Days per Event Type */}
       <div className="card mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Boot Dagen per Event Type</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Bootdagen per eventtype</h2>
         {statistics.boat_days_by_event_type.length > 0 ? (
           <div className="space-y-4">
             {statistics.boat_days_by_event_type.map((item) => (
@@ -176,41 +146,9 @@ export function StatisticsPage() {
         )}
       </div>
 
-      {/* Skipper Participation */}
-      <div className="card mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Schipper Deelname</h2>
-        {statistics.skipper_participation.length > 0 ? (
-          <div className="space-y-4">
-            {statistics.skipper_participation.map((skipper) => (
-              <div key={skipper.id}>
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <span className="font-medium text-gray-900">
-                      {skipper.first_name} {skipper.last_name}
-                    </span>
-                    <span className="text-sm text-gray-600 ml-2">{skipper.email}</span>
-                  </div>
-                  <span className="text-sm font-semibold text-gray-900">
-                    {formatCount(skipper.times_participated)} keer
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div
-                    className="bg-green-600 h-3 rounded-full transition-all duration-300"
-                    style={{ width: `${(skipper.times_participated / maxSkipperParticipation) * 100}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500 text-center py-8">Nog geen bevestigde schippers dit jaar</p>
-        )}
-      </div>
-
       {/* Event Types */}
-      <div className="card">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Event Types</h2>
+      <div className="card mb-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Aantal events per eventtype</h2>
         {statistics.event_types.length > 0 ? (
           <div className="space-y-4">
             {statistics.event_types.map((eventType) => (
@@ -239,6 +177,68 @@ export function StatisticsPage() {
           </div>
         ) : (
           <p className="text-gray-500 text-center py-8">Nog geen events dit jaar</p>
+        )}
+      </div>
+
+      {/* Boat Usage */}
+      <div className="card mb-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Boot Gebruik</h2>
+        {statistics.boat_usage.length > 0 ? (
+          <div className="space-y-4">
+            {statistics.boat_usage.map((boat) => (
+              <div key={boat.id}>
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <span className="font-medium text-gray-900">⛵ {boat.name}</span>
+                    <span className="text-sm text-gray-600 ml-2">({boat.boat_type})</span>
+                  </div>
+                  <span className="text-sm font-semibold text-gray-900">
+                    {formatCount(boat.times_used)} keer
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-cyan-600 h-3 rounded-full transition-all duration-300"
+                    style={{ width: `${(boat.times_used / maxBoatUsage) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 text-center py-8">Nog geen boten gebruikt dit jaar</p>
+        )}
+      </div>
+
+      {/* Skipper Participation */}
+      <div className="card">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Schipper Deelname</h2>
+        {statistics.skipper_participation.length > 0 ? (
+          <div className="space-y-4">
+            {statistics.skipper_participation.map((skipper) => (
+              <div key={skipper.id}>
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <span className="font-medium text-gray-900">
+                      {skipper.first_name} {skipper.last_name}
+                    </span>
+                    <span className="text-sm text-gray-600 ml-2">{skipper.email}</span>
+                  </div>
+                  <span className="text-sm font-semibold text-gray-900">
+                    {formatCount(skipper.times_participated)} keer
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-green-600 h-3 rounded-full transition-all duration-300"
+                    style={{ width: `${(skipper.times_participated / maxSkipperParticipation) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 text-center py-8">Nog geen bevestigde schippers dit jaar</p>
         )}
       </div>
     </div>
