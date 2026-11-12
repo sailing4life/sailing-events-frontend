@@ -259,6 +259,7 @@ export const eventsApi = {
       head_skipper_id?: number;
       race_director_ids?: number[];
       coach_ids?: number[];
+      rates?: Record<number, number>;
     }
   ): Promise<{
     message: string;

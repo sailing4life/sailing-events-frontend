@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { Event, Skipper, InvitationRole, EventTypeConfig } from '../types';
 import type { Batch, Selection } from '../services/planningApi';
 import { roles, durations } from '../services/planningApi';
+import { InvitationRateInput } from './events/InvitationRateInput';
+import { defaultInvitationRate } from '../utils/invitationRates';
 
 type Props = { events: Event[]; eventTypes: EventTypeConfig[]; skippers: Skipper[]; batches: Batch[]; selections: Selection[];
   onChange: (items: Selection[]) => void; disabled: boolean };
@@ -50,6 +52,9 @@ export function InvitationMatrix({ events, eventTypes, skippers, batches, select
     if (!supported(skipper, nextRole)) return;
     change(selections.map(item => item.event_id === eventId && item.skipper_id === skipper.id ? { ...item, role: nextRole } : item));
   }
+  function changeRate(eventId: number, skipperId: number, rate: number | undefined) {
+    change(selections.map(item => item.event_id === eventId && item.skipper_id === skipperId ? { ...item, rate } : item));
+  }
   function addMany(eventList: Event[], personList: Skipper[]) {
     const additions = eventList.flatMap(e => personList.filter(s => !reserved(e, s) && !chosen.has(`${e.id}:${s.id}`))
       .map(s => ({ event_id: e.id, skipper_id: s.id, role })));
@@ -82,7 +87,7 @@ export function InvitationMatrix({ events, eventTypes, skippers, batches, select
       <button disabled={disabled || !selections.length} onClick={() => change([])} className="px-2 py-2 text-slate-600 underline disabled:opacity-40">Selectie wissen</button>
       {undo && <button disabled={disabled} onClick={() => { onChange(undo); setUndo(null); }} className="px-2 py-2 font-medium text-ocean-800 underline">Ongedaan maken</button>}
     </div>
-    <p className="text-sm text-slate-500">Vink een persoon aan bij een event. De rol staat bij elke uitnodiging en kun je daar direct wijzigen. Per persoon kies je een rol per event.</p>
+    <p className="text-sm text-slate-500">Vink een persoon aan bij een event. Je kunt de rol en het tarief per uitnodiging wijzigen. Een leeg tarief gebruikt het standaardtarief voor de eventduur. Het bedrag staat in de mail en in Mijn planning.</p>
     <div className="space-y-3 lg:hidden">
       {visibleEvents.map(e => <details key={e.id} open={visibleEvents.length === 1 ? true : undefined} className="rounded-xl border border-slate-200 bg-white">
         <summary className="cursor-pointer space-y-1 p-4">
@@ -106,6 +111,9 @@ export function InvitationMatrix({ events, eventTypes, skippers, batches, select
                   {item && <select disabled={disabled} aria-label={`Rol van ${s.first_name} ${s.last_name} bij ${e.event_name}`} value={item.role} onChange={event => changeRole(e.id, s, event.target.value as InvitationRole)} className={`min-h-11 w-full rounded-lg border px-3 py-2 font-semibold ${roleStyles[item.role]}`}>
                     {roleKeys.filter(key => supported(s, key)).map(key => <option key={key} value={key}>{roles[key]}</option>)}
                   </select>}
+                  {item && <InvitationRateInput name={`${s.first_name} ${s.last_name} bij ${e.event_name}`}
+                    defaultRate={defaultInvitationRate(s, e.duration)} value={item.rate} disabled={disabled}
+                    onChange={rate => changeRate(e.id, s.id, rate)} />}
                 </>}
               </div>;
             })}
@@ -142,6 +150,9 @@ export function InvitationMatrix({ events, eventTypes, skippers, batches, select
                 {item && <select disabled={disabled} aria-label={`Rol van ${s.first_name} ${s.last_name} bij ${e.event_name}`} value={item.role} onChange={event => changeRole(e.id, s, event.target.value as InvitationRole)} className={`w-full rounded-lg border px-2 py-2 text-sm font-semibold ${roleStyles[item.role]}`}>
                   {roleKeys.filter(key => supported(s, key)).map(key => <option key={key} value={key}>{roles[key]}</option>)}
                 </select>}
+                {item && <InvitationRateInput name={`${s.first_name} ${s.last_name} bij ${e.event_name}`}
+                  defaultRate={defaultInvitationRate(s, e.duration)} value={item.rate} disabled={disabled}
+                  onChange={rate => changeRate(e.id, s.id, rate)} />}
               </div>}
             </td>;
           })}

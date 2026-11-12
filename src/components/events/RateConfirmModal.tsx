@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { validRate } from '../../utils/invitationRates';
 
 interface Participant {
   invitationId: number;
@@ -48,6 +49,7 @@ export function RateConfirmModal({ participants, title, confirmLabel, onConfirm,
                   type="number"
                   min="0"
                   step="0.01"
+                  aria-label={`Tarief voor ${p.name}`}
                   value={rates[p.invitationId]}
                   onChange={e => setRates(r => ({ ...r, [p.invitationId]: parseFloat(e.target.value) || 0 }))}
                   style={{ width: 90, padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 14, fontWeight: 600, textAlign: 'right' }}
@@ -65,6 +67,7 @@ export function RateConfirmModal({ participants, title, confirmLabel, onConfirm,
             Annuleren
           </button>
           <button
+            disabled={Object.values(rates).some(rate => !validRate(rate))}
             onClick={() => onConfirm(rates)}
             style={{ padding: '9px 18px', borderRadius: 8, border: 'none', background: '#0891b2', color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
           >

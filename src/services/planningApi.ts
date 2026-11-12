@@ -9,13 +9,14 @@ export interface PlanningInvitation {
   id: number; event_name: string; company_name: string; date: string; duration: string;
   start_time: string | null; end_time: string | null; role: InvitationRole; status: InvitationStatus;
   note: string; can_respond: boolean; boats: string[]; withdrawal_requested: boolean;
+  rate?: number | null;
 }
 export interface Planning { name: string; invitations: PlanningInvitation[]; history?: PlanningInvitation[] }
-export interface Selection { event_id: number; skipper_id: number; role: InvitationRole }
+export interface Selection { event_id: number; skipper_id: number; role: InvitationRole; rate?: number }
 export interface Batch {
   id: string; month: string; kind: string;
   recipients: { id: string; name: string; email: string; state: string; error: string | null; delivered_at: string | null;
-    events: { id: number; name: string; date: string; time: string; role: string }[] }[];
+    events: { id: number; name: string; date: string; time: string; role: string; rate: number | null }[] }[];
 }
 export const roles: Record<InvitationRole, string> = { skipper: 'Schipper', head_skipper: 'Hoofdschipper', coach: 'Coach', race_director: 'Wedstrijdleiding' };
 export const durations: Record<string, string> = { morning: 'Ochtend', afternoon: 'Middag', evening: 'Avond', full_day: 'Hele dag', half_day: 'Halve dag' };

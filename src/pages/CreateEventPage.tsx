@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { skippersApi, eventsApi, eventTypesApi } from '../services/api';
 import type { Skipper, EventTypeConfig } from '../types';
 import { toast } from 'sonner';
+import { InvitationRatesEditor } from '../components/events/InvitationRatesEditor';
+import { defaultInvitationRate, formatRate, ratesForPeople, validRate } from '../utils/invitationRates';
 
 interface EventFormData {
   event_name: string;
@@ -26,6 +28,7 @@ interface EventFormData {
 export function CreateEventPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [invitationRates, setInvitationRates] = useState<Record<number, number | undefined>>({});
   const [skippers, setSkippers] = useState<Skipper[]>([]);
   const [eventTypes, setEventTypes] = useState<EventTypeConfig[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,6 +57,10 @@ export function CreateEventPage() {
   });
 
   const totalSteps = 4;
+  const selectedIds = new Set([...formData.selected_skippers, ...formData.selected_race_directors,
+    ...formData.selected_coaches, ...(formData.selected_head_skipper ? [formData.selected_head_skipper] : [])]);
+  const invitedPeople = skippers.filter(person => selectedIds.has(person.id));
+  const ratesValid = invitedPeople.every(person => validRate(invitationRates[person.id]));
 
   useEffect(() => {
     loadData();
@@ -106,6 +113,7 @@ export function CreateEventPage() {
   };
 
   const handleSubmit = async () => {
+    if (!ratesValid) { toast.error('Controleer de tarieven voor de geselecteerde personen'); return; }
     setSubmitting(true);
     try {
       // Step 1: Create event — system auto-picks boats by count
@@ -126,6 +134,7 @@ export function CreateEventPage() {
 
       // Step 2: Send invitations to skippers, head skipper, race directors and coaches
       const invitationResult = await eventsApi.sendInvitations(event.id, {
+        rates: ratesForPeople(invitedPeople, formData.duration, invitationRates),
         skipper_ids: formData.selected_skippers,
         head_skipper_id: formData.selected_head_skipper || undefined,
         race_director_ids: formData.selected_race_directors.length > 0
@@ -501,7 +510,7 @@ export function CreateEventPage() {
                     {skipper.first_name} {skipper.last_name}
                   </p>
                   <p className="text-sm text-gray-600">
-                    €{['morning', 'afternoon', 'half_day', 'evening'].includes(formData.duration) ? skipper.half_day_rate : skipper.full_day_rate}
+                    {formatRate(invitationRates[skipper.id] ?? defaultInvitationRate(skipper, formData.duration))}
                   </p>
                   {skipper.notes && (
                     <p className="text-xs text-gray-500 mt-1">
@@ -760,7 +769,7 @@ export function CreateEventPage() {
                           )}
                         </div>
                           <span className="text-sm font-medium text-gray-700">
-                            €{['morning', 'afternoon', 'half_day', 'evening'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
+                            {skipper ? formatRate(invitationRates[skipper.id] ?? defaultInvitationRate(skipper, formData.duration)) : ''}
                           </span>
                         </div>
                       );
@@ -789,7 +798,7 @@ export function CreateEventPage() {
                           )}
                         </div>
                         <span className="text-sm font-medium text-gray-700">
-                          €{['morning', 'afternoon', 'half_day', 'evening'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
+                          {skipper ? formatRate(invitationRates[skipper.id] ?? defaultInvitationRate(skipper, formData.duration)) : ''}
                         </span>
                       </div>
                     );
@@ -818,7 +827,7 @@ export function CreateEventPage() {
                           )}
                         </div>
                           <span className="text-sm font-medium text-gray-700">
-                            €{['morning', 'afternoon', 'half_day', 'evening'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
+                            {skipper ? formatRate(invitationRates[skipper.id] ?? defaultInvitationRate(skipper, formData.duration)) : ''}
                           </span>
                         </div>
                       );
@@ -848,7 +857,7 @@ export function CreateEventPage() {
                           )}
                         </div>
                           <span className="text-sm font-medium text-gray-700">
-                            €{['morning', 'afternoon', 'half_day', 'evening'].includes(formData.duration) ? skipper?.half_day_rate : skipper?.full_day_rate}
+                            {skipper ? formatRate(invitationRates[skipper.id] ?? defaultInvitationRate(skipper, formData.duration)) : ''}
                           </span>
                         </div>
                       );
@@ -858,6 +867,9 @@ export function CreateEventPage() {
               )}
 
               {/* Info Box */}
+              <InvitationRatesEditor people={invitedPeople} duration={formData.duration} rates={invitationRates}
+                onChange={setInvitationRates} disabled={submitting} />
+
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-sm text-blue-800 font-medium mb-2">
                   ℹ️ Hoe werkt het nieuwe proces?
@@ -894,8 +906,8 @@ export function CreateEventPage() {
         ) : (
           <button
             onClick={handleSubmit}
-            disabled={submitting}
-            className={`btn-primary ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={submitting || !ratesValid}
+            className={`btn-primary ${submitting || !ratesValid ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {submitting ? 'Aanmaken...' : 'Event Aanmaken & Uitnodigingen Versturen'}
           </button>

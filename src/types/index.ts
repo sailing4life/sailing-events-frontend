@@ -57,6 +57,7 @@ export interface Invitation {
   skipper: Skipper;
   role: InvitationRole;
   status: InvitationStatus;
+  rate?: number | null;
   maybe_note?: string;
   invitation_sent_at?: string;
   response_received_at?: string;

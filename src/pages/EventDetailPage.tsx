@@ -9,6 +9,8 @@ import { RateConfirmModal } from '../components/events/RateConfirmModal';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { toast } from 'sonner';
 import { getEventStatus } from '../utils/eventStatus';
+import { InvitationRatesEditor } from '../components/events/InvitationRatesEditor';
+import { defaultInvitationRate, formatRate, ratesForPeople, validRate } from '../utils/invitationRates';
 
 const getInvitationStatusBadge = (status: InvitationStatus, isFinalized = false) => {
   if (isFinalized && (status === 'available' || status === 'maybe' || status === 'pending')) {
@@ -42,6 +44,7 @@ export function EventDetailPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [invitationRates, setInvitationRates] = useState<Record<number, number | undefined>>({});
   const [inviteRole, setInviteRole] = useState<'head_skipper' | 'skippers' | 'race_director' | 'coach' | null>(null);
   const [selectedSkippers, setSelectedSkippers] = useState<number[]>([]);
   const [selectedRaceDirectors, setSelectedRaceDirectors] = useState<number[]>([]);
@@ -169,7 +172,7 @@ export function EventDetailPage() {
     }
     const skipper = invitation.skipper;
     const isHalfDay = ['half_day', 'morning', 'afternoon', 'evening'].includes(event.duration);
-    const defaultRate = isHalfDay ? (skipper.half_day_rate ?? 0) : (skipper.full_day_rate ?? 0);
+    const defaultRate = invitation.rate ?? (isHalfDay ? (skipper.half_day_rate ?? 0) : (skipper.full_day_rate ?? 0));
     const name = `${skipper.first_name} ${skipper.last_name}`;
 
     setRateModal({
@@ -314,15 +317,14 @@ export function EventDetailPage() {
   const handleDirectConfirm = async (assignments: Array<{ skipper_id: number; role: string }>) => {
     if (!id || !event) return;
 
-    const isHalfDay = ['half_day', 'morning', 'afternoon', 'evening'].includes(event.duration);
-
     const participants = assignments.map(a => {
       const skipper = skippers.find(s => s.id === a.skipper_id);
       return {
         invitationId: a.skipper_id,
         name: skipper ? `${skipper.first_name} ${skipper.last_name}` : `Schipper #${a.skipper_id}`,
         role: a.role,
-        rate: skipper ? (isHalfDay ? skipper.half_day_rate : skipper.full_day_rate) : 0,
+        rate: event.invitations.find(inv => inv.skipper.id === a.skipper_id)?.rate
+          ?? (skipper ? defaultInvitationRate(skipper, event.duration) : 0),
       };
     });
 
@@ -389,6 +391,7 @@ export function EventDetailPage() {
   const handleOpenInviteModal = async (role: 'head_skipper' | 'skippers' | 'race_director' | 'coach') => {
     await ensureModalData();
     setInviteRole(role);
+    setInvitationRates({});
     setSelectedSkippers([]);
     setSelectedRaceDirectors([]);
     setSelectedCoaches([]);
@@ -426,6 +429,9 @@ export function EventDetailPage() {
 
   const handleSendAdditionalInvitations = () => {
     if (!event || !id) return;
+    if (!invitedPeople.every(person => validRate(invitationRates[person.id]))) {
+      toast.error('Controleer de tarieven voor de geselecteerde personen'); return;
+    }
 
     let confirmMessage = '';
     if (inviteRole === 'head_skipper') {
@@ -471,9 +477,11 @@ export function EventDetailPage() {
                 : inviteRole === 'coach'
                   ? { coach_ids: selectedCoaches }
                   : { skipper_ids: selectedSkippers };
-          const result = await eventsApi.sendInvitations(parseInt(id), payload);
+          const result = await eventsApi.sendInvitations(parseInt(id), { ...payload,
+            rates: ratesForPeople(invitedPeople, event.duration, invitationRates) });
           toast.success(result.message);
           setShowInviteModal(false);
+          setInvitationRates({});
           setInviteRole(null);
           setSelectedSkippers([]);
           setSelectedRaceDirectors([]);
@@ -571,6 +579,9 @@ export function EventDetailPage() {
   const invitations = Array.isArray(event.invitations) ? event.invitations : [];
   const coachInvitations = invitations.filter(inv => inv.role === 'coach');
   const invitedSkipperIds = new Set(invitations.map(inv => inv.skipper.id));
+  const selectedInviteIds = inviteRole === 'head_skipper' ? (selectedHeadSkipper ? [selectedHeadSkipper] : [])
+    : inviteRole === 'race_director' ? selectedRaceDirectors : inviteRole === 'coach' ? selectedCoaches : selectedSkippers;
+  const invitedPeople = skippers.filter(person => selectedInviteIds.includes(person.id) && !invitedSkipperIds.has(person.id));
 
   const eventStatus = getEventStatus(event);
   const { availableCount, totalRequired, isComplete, allConfirmed } = eventStatus;
@@ -888,6 +899,7 @@ export function EventDetailPage() {
                                         {invitation.skipper.first_name} {invitation.skipper.last_name}
                                       </p>
                                       <p className="text-sm text-gray-600">{invitation.skipper.email}</p>
+                                      {invitation.rate != null && <p className="text-sm font-medium text-gray-700">Tarief: {formatRate(invitation.rate)} voor dit event</p>}
                                       {invitation.skipper.email_bounced && (
                                         <p className="text-xs text-red-600 font-medium mt-1">E-mailadres ongeldig (bounced) — pas aan in schipperbeheer</p>
                                       )}
@@ -1394,7 +1406,7 @@ export function EventDetailPage() {
                                 </p>
                               )}
                               <p className="text-xs text-gray-500 mt-1">
-                                Tarief: €{['half_day', 'morning', 'afternoon', 'evening'].includes(event.duration) ? skipper.half_day_rate : skipper.full_day_rate}
+                                Tarief: {formatRate(invitationRates[skipper.id] ?? defaultInvitationRate(skipper, event.duration))}
                               </p>
                             </div>
                             {inviteRole === 'head_skipper' && selectedHeadSkipper === skipper.id && (
@@ -1429,6 +1441,9 @@ export function EventDetailPage() {
                 </div>
 
                 {/* Action Buttons */}
+                <InvitationRatesEditor people={invitedPeople} duration={event.duration} rates={invitationRates}
+                  onChange={setInvitationRates} disabled={actionLoading} />
+
                 <div className="flex gap-3 pt-4 border-t">
                   <button
                     onClick={() => setShowInviteModal(false)}
@@ -1440,6 +1455,7 @@ export function EventDetailPage() {
                     onClick={handleSendAdditionalInvitations}
                     disabled={
                       actionLoading ||
+                      invitedPeople.some(person => !validRate(invitationRates[person.id])) ||
                       (inviteRole === 'head_skipper'
                         ? !selectedHeadSkipper
                         : inviteRole === 'race_director'

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { planningApi, roles, durations, errorMessage } from '../services/planningApi';
 import type { Planning, PlanningInvitation } from '../services/planningApi';
+import { formatRate } from '../utils/invitationRates';
 
 const button = 'rounded-lg bg-ocean-600 px-5 py-3 font-medium text-white hover:bg-ocean-700 disabled:opacity-50';
 const input = 'w-full rounded-lg border border-gray-300 p-3';
@@ -55,6 +56,7 @@ export function MyPlanningPage() {
       <h3 className="mt-2 text-lg font-semibold">{inv.event_name}</h3>
       <p className="text-gray-600">{inv.company_name} · {roles[inv.role]}</p>
       {inv.boats.length > 0 && <p className="mt-2">Boot: {inv.boats.join(', ')}</p>}
+      {inv.rate != null && <p className="mt-2 font-medium">Tarief voor dit event: {formatRate(inv.rate)}</p>}
       {view === 'history' ? <p className="mt-4 text-sm text-gray-500">Eerdere bevestigde indeling</p> : inv.can_respond ? <fieldset disabled={busy} className="mt-4">
         <legend className="mb-2 text-sm font-medium">Kun je op deze datum?</legend>
         <div className="flex flex-wrap gap-2">{[['available', 'Ja, ik kan'], ['maybe', 'Misschien'], ['unavailable', 'Nee']].map(([value, label]) =>
