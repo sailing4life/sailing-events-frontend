@@ -10,6 +10,8 @@ import { toast } from 'sonner';
 
 type ViewMode = 'cards' | 'list' | 'calendar';
 
+const formatDayLength = (duration: Event['duration']) => duration === 'full_day' ? 'Hele dag' : 'Halve dag';
+
 export function EventsPage() {
   const navigate = useNavigate();
   const [events, setEvents] = useState<Event[]>([]);
@@ -235,7 +237,7 @@ export function EventsPage() {
                         </div>
                         <p className="break-words font-semibold text-gray-900">{event.event_name}</p>
                         <p className="break-words text-sm text-gray-600">{event.company_name}</p>
-                        <p className="text-sm text-gray-500">{eventTypeLabels[event.event_type] || event.event_type} · {event.event_boats?.length || 0} boten</p>
+                        <p className="text-sm text-gray-500">{formatDayLength(event.duration)} · {eventTypeLabels[event.event_type] || event.event_type} · {event.event_boats?.length || 0} boten</p>
                       </Link>;
                     })}
                   </div>
@@ -244,6 +246,7 @@ export function EventsPage() {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-4 py-3 text-left font-medium text-gray-500">Datum</th>
+                        <th scope="col" className="px-4 py-3 text-left font-medium text-gray-500">Dagdeel</th>
                         <th className="px-4 py-3 text-left font-medium text-gray-500">Event naam</th>
                         <th className="px-4 py-3 text-left font-medium text-gray-500">Bedrijf</th>
                         <th className="px-4 py-3 text-left font-medium text-gray-500">Type</th>
@@ -263,6 +266,7 @@ export function EventsPage() {
                             <td className="px-4 py-3 whitespace-nowrap text-gray-700">
                               {new Date(event.event_date).toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                             </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-gray-700">{formatDayLength(event.duration)}</td>
                             <td className="px-4 py-3 font-medium text-gray-900">{event.event_name}</td>
                             <td className="px-4 py-3 text-gray-700">{event.company_name}</td>
                             <td className="px-4 py-3 text-gray-700">{eventTypeLabels[event.event_type] || event.event_type}</td>
